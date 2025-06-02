@@ -6,12 +6,12 @@ import { Card, CardContent } from "@/components/ui/card"
 
 export default function ContactPage() {
   return (
-    <div className="bg-stone-50">
+    <div className="pt-20">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-stone-100 to-stone-200 py-16">
+      <section className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">Contact Us</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <h1 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">Contact Us</h1>
+          <p className="text-base text-gray-600 max-w-2xl mx-auto">
             Get in touch with Houston's most trusted roofing professionals. We're here to help with all your roofing
             needs.
           </p>
@@ -26,7 +26,7 @@ export default function ContactPage() {
             <div>
               <Card className="bg-white shadow-lg">
                 <CardContent className="p-8">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Get Your Free Estimate</h2>
+                  <h2 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">Get Your Free Estimate</h2>
                   <form className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
@@ -97,7 +97,7 @@ export default function ContactPage() {
             {/* Contact Information */}
             <div className="space-y-8">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Get In Touch</h2>
+                <h2 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">Get In Touch</h2>
                 <p className="text-gray-600 mb-8">
                   Ready to start your roofing project? Contact us today for a free estimate. Our experienced team is
                   here to help you with all your roofing needs.
@@ -112,7 +112,7 @@ export default function ContactPage() {
                         <Phone className="w-6 h-6 text-orange-500" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-800">Phone</h3>
+                        <h3 className="font-semibold text-gray-600">Phone</h3>
                         <p className="text-gray-600">(713) 555-1234</p>
                         <p className="text-sm text-gray-500">Call us for immediate assistance</p>
                       </div>
@@ -127,7 +127,7 @@ export default function ContactPage() {
                         <Mail className="w-6 h-6 text-green-600" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-800">Email</h3>
+                        <h3 className="font-semibold text-gray-600">Email</h3>
                         <p className="text-gray-600">info@americanroofing.com</p>
                         <p className="text-sm text-gray-500">Send us your questions</p>
                       </div>
@@ -142,7 +142,7 @@ export default function ContactPage() {
                         <MapPin className="w-6 h-6 text-orange-500" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-800">Address</h3>
+                        <h3 className="font-semibold text-gray-600">Address</h3>
                         <p className="text-gray-600">
                           123 Main Street
                           <br />
@@ -161,7 +161,7 @@ export default function ContactPage() {
                         <Clock className="w-6 h-6 text-green-600" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-800">Business Hours</h3>
+                        <h3 className="font-semibold text-gray-600">Business Hours</h3>
                         <p className="text-gray-600">
                           Mon - Fri: 8:00 AM - 6:00 PM
                           <br />
@@ -180,36 +180,6 @@ export default function ContactPage() {
       </section>
 
       {/* Trust Indicators */}
-      <section className="bg-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div className="flex flex-col items-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                <span className="text-2xl font-bold text-green-600">B</span>
-              </div>
-              <h3 className="font-semibold text-gray-800">BBB A+ Rating</h3>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                <span className="text-2xl font-bold text-orange-500">★</span>
-              </div>
-              <h3 className="font-semibold text-gray-800">4.9 (300+ Reviews)</h3>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                <span className="text-2xl font-bold text-green-600">G</span>
-              </div>
-              <h3 className="font-semibold text-gray-800">GAF Certified Installer</h3>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                <span className="text-2xl font-bold text-orange-500">🏠</span>
-              </div>
-              <h3 className="font-semibold text-gray-800">Local Houston-Owned</h3>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   )
 }

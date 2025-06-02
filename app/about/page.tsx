@@ -5,12 +5,12 @@ import Image from "next/image"
 
 export default function AboutPage() {
   return (
-    <div className="bg-stone-50">
+    <div className="pt-20">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-stone-100 to-stone-200 py-16">
+      <section className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">About American Roofing</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <h1 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">About American Roofing</h1>
+          <p className="text-base text-gray-600 max-w-2xl mx-auto">
             Houston's most trusted roofing professionals with over 15 years of experience serving homeowners throughout
             the greater Houston area.
           </p>
@@ -22,13 +22,13 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-6">Our Story</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">Our Story</h2>
+              <p className="text-gray-600 mb-3">
                 Founded in 2008, American Roofing has been serving the Houston community with integrity, quality
                 craftsmanship, and exceptional customer service. What started as a small family business has grown into
                 one of Houston's most trusted roofing companies.
               </p>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-3">
                 We understand that your roof is one of your home's most important investments. That's why we're
                 committed to providing superior roofing solutions using only the highest quality materials and proven
                 installation techniques.
@@ -66,11 +66,11 @@ export default function AboutPage() {
       </section>
 
       {/* Why Choose Us */}
-      <section className="bg-white py-16">
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">Why Choose American Roofing?</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">Why Choose American Roofing?</h2>
+            <p className="text-base text-gray-600 max-w-2xl mx-auto">
               We're committed to excellence in every project, from small repairs to complete roof replacements.
             </p>
           </div>
@@ -128,11 +128,11 @@ export default function AboutPage() {
       </section>
 
       {/* Our Services */}
-      <section className="py-16 bg-stone-50">
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">Our Services</h2>
-            <p className="text-xl text-gray-600">Comprehensive roofing solutions for all your needs</p>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">Our Services</h2>
+            <p className="text-base text-gray-600">Comprehensive roofing solutions for all your needs</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -144,7 +144,7 @@ export default function AboutPage() {
                 </p>
                 <Button
                   variant="outline"
-                  className="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
+                  className="text-orange-500 hover:bg-orange-500"
                 >
                   Learn More
                 </Button>
@@ -222,19 +222,19 @@ export default function AboutPage() {
       </section>
 
       {/* Call to Action */}
-      <section className="bg-gradient-to-r from-orange-500 to-orange-600 py-16">
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to Get Started?</h2>
-          <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">Ready to Get Started?</h2>
+          <p className="text-base text-gray-600 mb-4 max-w-2xl mx-auto">
             Contact us today for your free estimate and see why thousands of Houston homeowners trust American Roofing.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-white text-orange-500 hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
+            <Button className="bg-orange-500 px-8 py-3 text-lg font-semibold">
               Get Free Estimate
             </Button>
             <Button
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-orange-500 px-8 py-3 text-lg font-semibold"
+              className="text-gray-600 bg-gray-100 hover:bg-gray-200 px-8 py-3 text-lg font-semibold"
             >
               Call (713) 555-1234
             </Button>

@@ -158,7 +158,7 @@ export default function GalleryPage() {
         <div className="corporate-container">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">Project Gallery</h1>
-            <p className="text-base text-gray-600 mb-6">
+            <p className="text-base text-gray-600">
               Browse our portfolio of completed roofing projects throughout the Houston area. See the quality of our
               work and the transformations we've achieved for our satisfied customers.
             </p>
