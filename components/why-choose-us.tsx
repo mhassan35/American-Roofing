@@ -52,7 +52,7 @@ export default function WhyChooseUs() {
     <section className="bg-brand-beige py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">
             Why Choose Us
           </h2>
           <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">

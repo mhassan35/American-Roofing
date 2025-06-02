@@ -104,7 +104,7 @@ export default function Services() {
     >
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">
             Our Roofing Services
           </h2>
           <p className="mt-4 text-base text-gray-600 max-w-2xl mx-auto">
