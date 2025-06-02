@@ -42,8 +42,8 @@ export default function CTASection() {
   }
 
   return (
-    <section className="corporate-section bg-brand-orange/5">
-      <div className="corporate-container">
+    <section id="cta" className="corporate-section bg-brand-orange/5 scroll-mt-20">
+      <div className="corporate-container px-4 sm:px-6 lg:px-8 py-12">
         <motion.div
           ref={ref}
           variants={containerVariants}
@@ -51,45 +51,53 @@ export default function CTASection() {
           animate={controls}
           className="max-w-3xl mx-auto text-center"
         >
-          <motion.h2 variants={itemVariants} className="text-2xl md:text-3xl font-semibold mb-4 text-gray-800">
+          <motion.h2 variants={itemVariants} className="text-xl sm:text-2xl md:text-3xl font-semibold mb-4 text-gray-800">
             Ready to Transform Your Roof?
           </motion.h2>
 
-          <motion.p variants={itemVariants} className="text-base text-gray-600 mb-6">
+          <motion.p variants={itemVariants} className="text-sm sm:text-base text-gray-600 mb-6">
             Get a free, no-obligation quote in under 60 seconds and see why Houston homeowners trust American Roofing.
           </motion.p>
 
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-center gap-4 mb-10">
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 mb-10"
+          >
             <Button
               onClick={openLeadForm}
-              className="btn-corporate bg-brand-orange hover:bg-brand-orange/90 text-white shadow-sm hover:shadow-md"
+              className="w-full sm:w-auto btn-corporate bg-brand-orange hover:bg-brand-orange/90 text-white shadow-sm hover:shadow-md"
             >
               Start Your Free Estimate
             </Button>
             <Button
               variant="outline"
-              className="btn-corporate border-brand-green text-brand-green hover:bg-brand-green/10"
+              className="w-full sm:w-auto btn-corporate border-brand-green text-brand-green hover:bg-brand-green/10"
             >
               Learn More <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+          <motion.div
+            variants={itemVariants}
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-left"
+          >
             <div className="bg-white p-4 rounded-md shadow-sm">
               <div className="flex items-start mb-3">
-                <div className="flat-icon-secondary rounded-full mr-3 p-1.5">
+                <div className="flat-icon-secondary rounded-full mr-3 p-1.5 sm:p-2">
                   <CheckCircle className="h-4 w-4" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-base mb-1 text-gray-800">No Obligation</h3>
-                  <p className="text-sm text-gray-600">Get a detailed quote with no pressure or commitment required.</p>
+                  <p className="text-sm text-gray-600">
+                    Get a detailed quote with no pressure or commitment required.
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className="bg-white p-4 rounded-md shadow-sm">
               <div className="flex items-start mb-3">
-                <div className="flat-icon-secondary rounded-full mr-3 p-1.5">
+                <div className="flat-icon-secondary rounded-full mr-3 p-1.5 sm:p-2">
                   <CheckCircle className="h-4 w-4" />
                 </div>
                 <div>
@@ -103,12 +111,14 @@ export default function CTASection() {
 
             <div className="bg-white p-4 rounded-md shadow-sm">
               <div className="flex items-start mb-3">
-                <div className="flat-icon-secondary rounded-full mr-3 p-1.5">
+                <div className="flat-icon-secondary rounded-full mr-3 p-1.5 sm:p-2">
                   <CheckCircle className="h-4 w-4" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-base mb-1 text-gray-800">Transparent Pricing</h3>
-                  <p className="text-sm text-gray-600">No hidden fees or surprises - just honest, upfront pricing.</p>
+                  <p className="text-sm text-gray-600">
+                    No hidden fees or surprises – just honest, upfront pricing.
+                  </p>
                 </div>
               </div>
             </div>

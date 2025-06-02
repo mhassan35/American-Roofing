@@ -4,7 +4,14 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import { useLeadFormStore } from "@/lib/store"
-import { Star, Shield, Award, CheckCircle, Home, ArrowRight } from "lucide-react"
+import {
+  Star,
+  Shield,
+  Award,
+  CheckCircle,
+  Home,
+  ArrowRight
+} from "lucide-react"
 
 export default function Hero() {
   const { openLeadForm } = useLeadFormStore()
@@ -15,27 +22,30 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative pt-20 pb-12 md:pt-24 md:pb-16 overflow-hidden">
-      {/* Background Image with Overlay */}
+    <section id="hero-section" className="relative pb-36 lg:pb-20 pt-20 overflow-hidden">
+      {/* Background */}
       <div className="absolute inset-0 z-0">
         <div className="w-full h-full bg-gradient-to-r from-brand-green/20 to-brand-orange/10" />
       </div>
 
-      <div className="corporate-container relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+      {/* Content Container */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 pt-2 pb-24 md:pb-2 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row items-center justify-center text-center lg:text-left lg:items-start gap-12">
+          {/* Text Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={isVisible ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6 }}
+            className="flex-1 max-w-2xl"
           >
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold leading-tight mb-4 text-gray-800">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold leading-tight mb-4 text-gray-800">
               Houston's Most Trusted Roofing Pros
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6">
               Request a fast, free quote in under 60 seconds.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-center lg:justify-start">
               <Button
                 onClick={openLeadForm}
                 className="btn-corporate bg-brand-orange hover:bg-brand-orange/90 text-white"
@@ -51,7 +61,7 @@ export default function Hero() {
               </Button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <div className="flex flex-wrap justify-center lg:justify-start items-center gap-x-6 gap-y-3">
               <div className="flex items-center">
                 <div className="flat-icon flat-icon-sm mr-2 rounded-full">
                   <Shield className="h-4 w-4" />
@@ -73,11 +83,12 @@ export default function Hero() {
             </div>
           </motion.div>
 
+          {/* Estimate Form Section */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={isVisible ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="hidden lg:block"
+            className="flex-1 w-full max-w-md"
           >
             <div className="bg-white rounded-lg p-6 shadow-lg">
               <div className="text-center mb-6">
@@ -86,30 +97,19 @@ export default function Hero() {
               </div>
 
               <div className="space-y-3 mb-6">
-                <div className="flex items-center">
-                  <div className="flat-icon-secondary rounded-full mr-3 p-1.5">
-                    <CheckCircle className="h-4 w-4" />
+                {[
+                  "No obligation quote",
+                  "Fast response time",
+                  "Professional assessment",
+                  "Transparent pricing"
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center">
+                    <div className="flat-icon-secondary rounded-full mr-3 p-1.5">
+                      <CheckCircle className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm text-gray-700">{item}</span>
                   </div>
-                  <span className="text-sm text-gray-700">No obligation quote</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="flat-icon-secondary rounded-full mr-3 p-1.5">
-                    <CheckCircle className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm text-gray-700">Fast response time</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="flat-icon-secondary rounded-full mr-3 p-1.5">
-                    <CheckCircle className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm text-gray-700">Professional assessment</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="flat-icon-secondary rounded-full mr-3 p-1.5">
-                    <CheckCircle className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm text-gray-700">Transparent pricing</span>
-                </div>
+                ))}
               </div>
 
               <Button
@@ -125,8 +125,8 @@ export default function Hero() {
 
       {/* Trust Bar */}
       <div className="absolute bottom-0 left-0 right-0 bg-white py-3 shadow-md">
-        <div className="corporate-container">
-          <div className="flex flex-wrap justify-center md:justify-between items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap justify-center md:justify-between items-center gap-4 text-center">
             <div className="flex items-center">
               <div className="flat-icon flat-icon-secondary mr-3 p-1.5">
                 <Award className="h-4 w-4" />
@@ -164,5 +164,3 @@ export default function Hero() {
     </section>
   )
 }
-
-

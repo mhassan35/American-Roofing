@@ -27,26 +27,16 @@ const features = [
 ]
 
 export default function WhyChooseUs() {
-  const [ref, inView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  })
-
+  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 })
   const controls = useAnimation()
 
   useEffect(() => {
-    if (inView) {
-      controls.start("visible")
-    }
+    if (inView) controls.start("visible")
   }, [controls, inView])
 
   const containerVariants = {
     hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
+    visible: { transition: { staggerChildren: 0.2 } },
   }
 
   const itemVariants = {
@@ -59,11 +49,13 @@ export default function WhyChooseUs() {
   }
 
   return (
-    <section className="clickfunnels-section bg-brand-beige">
-      <div className="clickfunnels-container">
-        <div className="text-center mb-20">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800">Why Choose Us</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+    <section className="bg-brand-beige py-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+            Why Choose Us
+          </h2>
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
             American Roofing is committed to providing exceptional service and quality craftsmanship on every project.
           </p>
         </div>
@@ -73,21 +65,23 @@ export default function WhyChooseUs() {
           variants={containerVariants}
           initial="hidden"
           animate={controls}
-          className="grid grid-cols-1 md:grid-cols-3 gap-10"
+          className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
         >
           {features.map((feature, index) => (
             <motion.div
               key={feature.id}
               variants={itemVariants}
-              className="bg-white rounded-2xl p-10 shadow-soft hover:shadow-hover transition-all duration-300"
+              className="bg-white rounded-2xl p-8 sm:p-10 shadow-md hover:shadow-xl transition-shadow duration-300"
             >
               <div
-                className={`flat-icon ${index % 2 === 0 ? "flat-icon-primary" : "flat-icon-secondary"} p-5 rounded-2xl inline-block mb-8`}
+                className={`flat-icon ${index % 2 === 0 ? "flat-icon-primary" : "flat-icon-secondary"} p-4 sm:p-5 rounded-2xl inline-block mb-6`}
               >
-                <feature.icon className="h-10 w-10" />
+                <feature.icon className="h-8 w-8 sm:h-10 sm:w-10 text-brand" />
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">{feature.title}</h3>
-              <p className="text-xl text-gray-600">{feature.description}</p>
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-800 mb-4">
+                {feature.title}
+              </h3>
+              <p className="text-base sm:text-lg text-gray-600">{feature.description}</p>
             </motion.div>
           ))}
         </motion.div>
