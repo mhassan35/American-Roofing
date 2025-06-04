@@ -1,15 +1,7 @@
 "use client"
 
-import { useAppDispatch, useAppSelector } from "@/lib/hooks/redux"
-import {
-  selectService,
-  updateService,
-  toggleServiceStatus,
-  addFAQ,
-  removeFAQ,
-  addBenefit,
-  removeBenefit,
-} from "@/lib/store/slices/servicesSlice"
+import { useState } from "react"
+import { useServicesStore } from "@/lib/store"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,7 +24,7 @@ import {
   Target,
   Copy,
 } from "lucide-react"
-import { useState } from "react"
+import type { ServiceFAQ } from "@/lib/store"
 
 const serviceIcons = {
   "roof-replacement": { icon: Home, color: "bg-blue-100 text-blue-600" },
@@ -41,14 +33,25 @@ const serviceIcons = {
 }
 
 export default function ServicesManagement() {
-  const dispatch = useAppDispatch()
-  const { services, selectedService, stats } = useAppSelector((state) => state.services)
+  const {
+    services,
+    selectedService,
+    stats,
+    selectService,
+    updateService,
+    toggleServiceStatus,
+    addFAQ,
+    removeFAQ,
+    addBenefit,
+    removeBenefit,
+  } = useServicesStore()
+
   const [editingSettings, setEditingSettings] = useState<Record<string, any>>({})
-  const [newFAQ, setNewFAQ] = useState({ question: "", answer: "" })
+  const [newFAQ, setNewFAQ] = useState<ServiceFAQ>({ question: "", answer: "" })
   const [newBenefit, setNewBenefit] = useState("")
 
   const handleServiceSelect = (serviceId: string) => {
-    dispatch(selectService(serviceId))
+    selectService(serviceId)
     const service = services.find((s) => s.id === serviceId)
     if (service) {
       setEditingSettings({
@@ -67,23 +70,19 @@ export default function ServicesManagement() {
 
   const handleSaveSettings = () => {
     if (selectedService) {
-      dispatch(
-        updateService({
-          id: selectedService.id,
-          updates: editingSettings,
-        }),
-      )
+      updateService({
+        id: selectedService.id,
+        updates: editingSettings,
+      })
     }
   }
 
   const handleAddFAQ = () => {
     if (selectedService && newFAQ.question && newFAQ.answer) {
-      dispatch(
-        addFAQ({
-          serviceId: selectedService.id,
-          faq: newFAQ,
-        }),
-      )
+      addFAQ({
+        serviceId: selectedService.id,
+        faq: newFAQ,
+      })
       setNewFAQ({ question: "", answer: "" })
       setEditingSettings((prev) => ({
         ...prev,
@@ -94,12 +93,10 @@ export default function ServicesManagement() {
 
   const handleAddBenefit = () => {
     if (selectedService && newBenefit) {
-      dispatch(
-        addBenefit({
-          serviceId: selectedService.id,
-          benefit: newBenefit,
-        }),
-      )
+      addBenefit({
+        serviceId: selectedService.id,
+        benefit: newBenefit,
+      })
       setNewBenefit("")
       setEditingSettings((prev) => ({
         ...prev,
@@ -110,30 +107,26 @@ export default function ServicesManagement() {
 
   const handleRemoveFAQ = (index: number) => {
     if (selectedService) {
-      dispatch(
-        removeFAQ({
-          serviceId: selectedService.id,
-          index,
-        }),
-      )
+      removeFAQ({
+        serviceId: selectedService.id,
+        index,
+      })
       setEditingSettings((prev) => ({
         ...prev,
-        faqs: prev.faqs?.filter((_, i) => i !== index) || [],
+        faqs: prev.faqs?.filter((_: ServiceFAQ, i: number) => i !== index) || [],
       }))
     }
   }
 
   const handleRemoveBenefit = (index: number) => {
     if (selectedService) {
-      dispatch(
-        removeBenefit({
-          serviceId: selectedService.id,
-          index,
-        }),
-      )
+      removeBenefit({
+        serviceId: selectedService.id,
+        index,
+      })
       setEditingSettings((prev) => ({
         ...prev,
-        benefits: prev.benefits?.filter((_, i) => i !== index) || [],
+        benefits: prev.benefits?.filter((_: string, i: number) => i !== index) || [],
       }))
     }
   }
@@ -150,7 +143,7 @@ export default function ServicesManagement() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Button variant="outline" size="sm" onClick={() => dispatch(selectService(""))} className="mr-4">
+            <Button variant="outline" size="sm" onClick={() => selectService("")} className="mr-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Services
             </Button>
@@ -167,7 +160,7 @@ export default function ServicesManagement() {
           <div className="flex items-center space-x-4">
             <Switch
               checked={selectedService.isActive}
-              onCheckedChange={() => dispatch(toggleServiceStatus(selectedService.id))}
+              onCheckedChange={() => toggleServiceStatus(selectedService.id)}
             />
             <Button onClick={handleSaveSettings} className="bg-orange-500 hover:bg-orange-600">
               <Save className="h-4 w-4 mr-2" />
@@ -366,7 +359,7 @@ export default function ServicesManagement() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {editingSettings.faqs?.map((faq: any, index: number) => (
+              {editingSettings.faqs?.map((faq: ServiceFAQ, index: number) => (
                 <div key={index} className="p-4 border rounded-lg">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-medium text-sm">{faq.question}</h4>
@@ -486,7 +479,7 @@ export default function ServicesManagement() {
                   <div className="flex items-center space-x-2">
                     <Switch
                       checked={service.isActive}
-                      onCheckedChange={() => dispatch(toggleServiceStatus(service.id))}
+                      onCheckedChange={() => toggleServiceStatus(service.id)}
                       onClick={(e) => e.stopPropagation()}
                     />
                     <Badge variant={service.isActive ? "default" : "secondary"}>

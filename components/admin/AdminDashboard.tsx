@@ -1,24 +1,22 @@
 "use client"
-
 import { useEffect } from "react"
-import { useAppDispatch, useAppSelector } from "@/lib/hooks/redux"
-import { setIsMobile } from "@/lib/store/slices/uiSlice"
+import { useAuthStore, useUIStore } from "@/lib/store"
 import LoginForm from "./LoginForm"
 import DashboardLayout from "./DashboardLayout"
 
 export default function AdminDashboard() {
-  const dispatch = useAppDispatch()
-  const { isAuthenticated } = useAppSelector((state) => state.auth)
+  const { isAuthenticated } = useAuthStore()
+  const { setIsMobile } = useUIStore()
 
   useEffect(() => {
     const handleResize = () => {
-      dispatch(setIsMobile(window.innerWidth < 768))
+      setIsMobile(window.innerWidth < 768)
     }
 
     handleResize()
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
-  }, [dispatch])
+  }, [setIsMobile])
 
   if (!isAuthenticated) {
     return <LoginForm />

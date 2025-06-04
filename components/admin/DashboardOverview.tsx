@@ -1,14 +1,15 @@
 "use client"
 
-import { useAppSelector } from "@/lib/hooks/redux"
+import { useLeadStore, useAuthStore } from "@/lib/store"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Users, DollarSign, TrendingUp, Phone, Mail, Eye, BarChart, ImageIcon, Activity, Monitor } from "lucide-react"
+import { Users, DollarSign, TrendingUp, Phone, Mail, Eye } from "lucide-react"
 
 export default function DashboardOverview() {
-  const { stats, leads } = useAppSelector((state) => state.leads)
-  const { user } = useAppSelector((state) => state.auth)
+  const { leads, getStats } = useLeadStore()
+  const stats = getStats()
+  const { user } = useAuthStore()
 
   const quickStats = [
     {
@@ -132,7 +133,7 @@ export default function DashboardOverview() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentLeads.map((lead: any) => (
+              {recentLeads.map((lead) => (
                 <div key={lead.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-4">
                     <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
@@ -295,9 +296,6 @@ export default function DashboardOverview() {
           </CardContent>
         </Card>
       </div>
-
-      {/* More Quick Actions */}
-     
     </div>
   )
 }

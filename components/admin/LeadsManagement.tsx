@@ -1,34 +1,34 @@
 "use client"
 
-import { useEffect } from "react"
-import { useAppDispatch, useAppSelector } from "@/lib/hooks/redux"
-import {
-  setLeads,
-  setSearchTerm,
-  setStatusFilter,
-  updateLeadStatus,
-  selectLead,
-  type Lead,
-} from "@/lib/store/slices/leadsSlice"
-import { useLeadStore } from "@/lib/zustand-store"
+import { useState } from "react"
+import { useLeadStore, type Lead } from "@/lib/store"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Filter, Download, Eye, Phone, Mail, MapPin, Clock, Home, AlertCircle } from "lucide-react"
+import { Search, Filter, Download, Eye, Phone, Mail, MapPin, Clock, Home, AlertCircle, Trash2 } from "lucide-react"
 
 export default function LeadsManagement() {
-  const dispatch = useAppDispatch()
-  const { filteredLeads, searchTerm, statusFilter, selectedLead, stats } = useAppSelector((state) => state.leads)
+  const { leads, updateLeadStatus, deleteLead, getStats } = useLeadStore()
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
 
-  // Get leads from Zustand store
-  const { leads: zustandLeads, getStats } = useLeadStore()
+  const stats = getStats()
 
-  // Sync Zustand leads with Redux
-  useEffect(() => {
-    dispatch(setLeads(zustandLeads))
-  }, [zustandLeads, dispatch])
+  // Filter leads based on search term and status filter
+  const filteredLeads = leads.filter((lead) => {
+    const matchesSearch =
+      searchTerm === "" ||
+      `${lead.firstName} ${lead.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.phone.includes(searchTerm)
+
+    const matchesStatus = statusFilter === "all" || lead.status === statusFilter
+
+    return matchesSearch && matchesStatus
+  })
 
   const getStatusColor = (status: Lead["status"]) => {
     switch (status) {
@@ -68,6 +68,54 @@ export default function LeadsManagement() {
     return serviceMap[service] || service
   }
 
+  // Export leads to CSV
+  const exportLeads = () => {
+    const headers = [
+      "First Name",
+      "Last Name",
+      "Email",
+      "Phone",
+      "Service",
+      "Property Type",
+      "Urgency",
+      "Address",
+      "Zip Code",
+      "Message",
+      "Status",
+      "Date",
+      "Source",
+    ].join(",")
+
+    const rows = leads.map((lead) =>
+      [
+        `"${lead.firstName}"`,
+        `"${lead.lastName}"`,
+        `"${lead.email}"`,
+        `"${lead.phone}"`,
+        `"${getServiceDisplayName(lead.service)}"`,
+        `"${lead.propertyType || ""}"`,
+        `"${lead.urgency || ""}"`,
+        `"${lead.address || ""}"`,
+        `"${lead.zipCode || ""}"`,
+        `"${(lead.message || "").replace(/"/g, '""')}"`,
+        `"${lead.status}"`,
+        `"${lead.date}"`,
+        `"${lead.source}"`,
+      ].join(","),
+    )
+
+    const csv = [headers, ...rows].join("\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.setAttribute("href", url)
+    link.setAttribute("download", `leads-export-${new Date().toISOString().split("T")[0]}.csv`)
+    link.style.visibility = "hidden"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -76,7 +124,7 @@ export default function LeadsManagement() {
           <h1 className="text-2xl font-bold text-gray-900">Lead Management</h1>
           <p className="text-gray-600">Manage and track your roofing leads from the website</p>
         </div>
-        <Button variant="outline" className="mt-4 sm:mt-0">
+        <Button variant="outline" className="mt-4 sm:mt-0" onClick={exportLeads}>
           <Download className="h-4 w-4 mr-2" />
           Export Leads
         </Button>
@@ -128,12 +176,12 @@ export default function LeadsManagement() {
                 <Input
                   placeholder="Search leads..."
                   value={searchTerm}
-                  onChange={(e) => dispatch(setSearchTerm(e.target.value))}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            <Select value={statusFilter} onValueChange={(value) => dispatch(setStatusFilter(value))}>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-40">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Status" />
@@ -169,94 +217,108 @@ export default function LeadsManagement() {
                 </tr>
               </thead>
               <tbody>
-                {filteredLeads.map((lead : any) => (
-                  <tr key={lead.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-semibold text-sm">
-                            {lead.firstName[0]}
-                            {lead.lastName[0]}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {lead.firstName} {lead.lastName}
-                          </p>
-                          <div className="flex items-center text-xs text-gray-500">
-                            {getUrgencyIcon(lead.urgency)}
-                            {lead.urgency && <span className="ml-1 capitalize">{lead.urgency}</span>}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-sm">
-                        <p className="text-gray-900">{lead.email}</p>
-                        <p className="text-gray-500">{lead.phone}</p>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-sm">
-                        <p className="text-gray-900">{getServiceDisplayName(lead.service)}</p>
-                        {lead.propertyType && (
-                          <div className="flex items-center text-xs text-gray-500 mt-1">
-                            <Home className="h-3 w-3 mr-1" />
-                            <span className="capitalize">{lead.propertyType}</span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      {lead.address && (
-                        <div className="text-sm">
-                          <div className="flex items-center text-gray-900">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            <span>{lead.address}</span>
-                          </div>
-                          <p className="text-gray-500">{lead.zipCode}</p>
-                        </div>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      <Select
-                        value={lead.status}
-                        onValueChange={(value) =>
-                          dispatch(updateLeadStatus({ id: lead.id, status: value as Lead["status"] }))
-                        }
-                      >
-                        <SelectTrigger className="w-32">
-                          <Badge className={getStatusColor(lead.status)}>{lead.status}</Badge>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="new">New</SelectItem>
-                          <SelectItem value="contacted">Contacted</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="p-4">
-                      <span className="text-sm text-gray-500">{lead.date}</span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline" onClick={() => dispatch(selectLead(lead))}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" asChild>
-                          <a href={`tel:${lead.phone}`}>
-                            <Phone className="h-4 w-4" />
-                          </a>
-                        </Button>
-                        <Button size="sm" variant="outline" asChild>
-                          <a href={`mailto:${lead.email}`}>
-                            <Mail className="h-4 w-4" />
-                          </a>
-                        </Button>
-                      </div>
+                {filteredLeads.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-8 text-gray-500">
+                      No leads found. {searchTerm || statusFilter !== "all" ? "Try adjusting your filters." : ""}
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredLeads.map((lead) => (
+                    <tr key={lead.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="p-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-semibold text-sm">
+                              {lead.firstName?.[0] || ""}
+                              {lead.lastName?.[0] || ""}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {lead.firstName} {lead.lastName}
+                            </p>
+                            <div className="flex items-center text-xs text-gray-500">
+                              {getUrgencyIcon(lead.urgency)}
+                              {lead.urgency && <span className="ml-1 capitalize">{lead.urgency}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-sm">
+                          <p className="text-gray-900">{lead.email}</p>
+                          <p className="text-gray-500">{lead.phone}</p>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-sm">
+                          <p className="text-gray-900">{getServiceDisplayName(lead.service)}</p>
+                          {lead.propertyType && (
+                            <div className="flex items-center text-xs text-gray-500 mt-1">
+                              <Home className="h-3 w-3 mr-1" />
+                              <span className="capitalize">{lead.propertyType}</span>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        {lead.address && (
+                          <div className="text-sm">
+                            <div className="flex items-center text-gray-900">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              <span>{lead.address}</span>
+                            </div>
+                            <p className="text-gray-500">{lead.zipCode}</p>
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <Select
+                          value={lead.status}
+                          onValueChange={(value) => updateLeadStatus(lead.id, value as Lead["status"])}
+                        >
+                          <SelectTrigger className="w-32">
+                            <Badge className={getStatusColor(lead.status)}>{lead.status}</Badge>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="new">New</SelectItem>
+                            <SelectItem value="contacted">Contacted</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-sm text-gray-500">{lead.date}</span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex space-x-2">
+                          <Button size="sm" variant="outline" onClick={() => setSelectedLead(lead)}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" asChild>
+                            <a href={`tel:${lead.phone}`}>
+                              <Phone className="h-4 w-4" />
+                            </a>
+                          </Button>
+                          <Button size="sm" variant="outline" asChild>
+                            <a href={`mailto:${lead.email}`}>
+                              <Mail className="h-4 w-4" />
+                            </a>
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => deleteLead(lead.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -270,7 +332,7 @@ export default function LeadsManagement() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Lead Details
-                <Button variant="ghost" size="sm" onClick={() => dispatch(selectLead(null))}>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedLead(null)}>
                   ×
                 </Button>
               </CardTitle>
@@ -345,8 +407,21 @@ export default function LeadsManagement() {
                 </div>
               )}
 
+              {selectedLead.photo && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Photo</label>
+                  <div className="mt-1">
+                    <img
+                      src={selectedLead.photo || "/placeholder.svg"}
+                      alt="Roof photo"
+                      className="max-h-64 rounded-lg border border-gray-200"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-end space-x-3">
-                <Button variant="outline" onClick={() => dispatch(selectLead(null))}>
+                <Button variant="outline" onClick={() => setSelectedLead(null)}>
                   Close
                 </Button>
                 <Button variant="outline" asChild>

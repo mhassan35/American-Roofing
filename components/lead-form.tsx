@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
-import { useLeadFormStore } from "@/lib/store"
+import { useLeadFormStore, useLeadStore } from "@/lib/store"
 import {
   X,
   Home,
@@ -59,6 +59,7 @@ const urgencyLevels = [
 
 export default function LeadForm() {
   const { isOpen, closeLeadForm } = useLeadFormStore()
+  const { addLead } = useLeadStore()
   const [step, setStep] = useState(1)
   const [progress, setProgress] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -71,7 +72,7 @@ export default function LeadForm() {
     urgency: "",
     address: "",
     zipCode: "",
-    photo: null,
+    photo: null as File | null,
     name: "",
     phone: "",
     email: "",
@@ -114,7 +115,6 @@ export default function LeadForm() {
 
   const handlePhotoSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Photo is optional, so we can proceed regardless
     nextStep()
   }
 
@@ -138,13 +138,45 @@ export default function LeadForm() {
 
     setIsSubmitting(true)
 
-    // Simulate API call
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Extract first and last name from the full name
+      const nameParts = formData.name.trim().split(" ")
+      const firstName = nameParts[0] || ""
+      const lastName = nameParts.slice(1).join(" ") || ""
 
-      // Success
+      // Convert file to data URL if exists
+      let photoUrl = ""
+      if (formData.photo instanceof File) {
+        photoUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.readAsDataURL(formData.photo!)
+        })
+      }
+
+      // Add lead to the store using your existing structure
+      addLead({
+        firstName,
+        lastName,
+        email: formData.email,
+        phone: formData.phone,
+        service: formData.service,
+        message: formData.message || "",
+        source: "Website Form",
+        urgency: formData.urgency,
+        propertyType: formData.propertyType,
+        address: formData.address,
+        zipCode: formData.zipCode,
+        photo: photoUrl,
+      })
+
       setIsSubmitting(false)
       setIsComplete(true)
+
+      toast({
+        title: "Lead submitted successfully",
+        description: "Your request has been received and will appear in the admin dashboard",
+      })
 
       // Reset form after 5 seconds
       setTimeout(() => {

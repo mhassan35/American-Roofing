@@ -1,9 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useAppDispatch, useAppSelector } from "@/lib/hooks/redux"
-import { setActiveTab, toggleSidebar } from "@/lib/store/slices/uiSlice"
+import { useUIStore, useLeadStore } from "@/lib/store"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -18,9 +16,9 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ navigation }: SidebarProps) {
-  const dispatch = useAppDispatch()
-  const { sidebarOpen, activeTab, isMobile } = useAppSelector((state) => state.ui)
-  const { stats } = useAppSelector((state) => state.leads)
+  const { sidebarOpen, activeTab, isMobile, setActiveTab, toggleSidebar } = useUIStore()
+  const { getStats } = useLeadStore()
+  const stats = getStats()
 
   return (
     <div
@@ -46,7 +44,7 @@ export default function Sidebar({ navigation }: SidebarProps) {
             )}
           </div>
           {isMobile && (
-            <Button variant="ghost" size="sm" onClick={() => dispatch(toggleSidebar())}>
+            <Button variant="ghost" size="sm" onClick={() => toggleSidebar()}>
               <X className="h-5 w-5" />
             </Button>
           )}
@@ -68,8 +66,8 @@ export default function Sidebar({ navigation }: SidebarProps) {
                   !sidebarOpen && "lg:justify-center lg:px-2",
                 )}
                 onClick={() => {
-                  dispatch(setActiveTab(item.id))
-                  if (isMobile) dispatch(toggleSidebar())
+                  setActiveTab(item.id)
+                  if (isMobile) toggleSidebar()
                 }}
               >
                 <item.icon className={cn("h-5 w-5", sidebarOpen ? "mr-3" : "mr-0")} />

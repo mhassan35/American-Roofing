@@ -1,7 +1,7 @@
 "use client"
 
-import { useAppDispatch, useAppSelector } from "@/lib/hooks/redux"
-import { selectPage, selectComponent, updateComponentSettings, toggleComponent } from "@/lib/store/slices/contentSlice"
+import { useState } from "react"
+import { useContentStore } from "@/lib/store"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,47 +29,7 @@ import {
   Share2,
   type LucideIcon,
 } from "lucide-react"
-import { useState } from "react"
-
-// Define component types
-type ComponentType =
-  | "hero"
-  | "services"
-  | "social-proof"
-  | "gallery"
-  | "cta"
-  | "why-choose"
-  | "floating-cta"
-  | "contact-form"
-  | "about-content"
-  | "service-benefits"
-  | "service-process"
-  | "service-faqs"
-
-// Define page types
-type PageType = "home" | "about" | "contact" | "roof-replacement" | "roof-repair" | "storm-damage"
-
-// Define category types
-type CategoryType = "main" | "service" | "utility"
-
-// Define interfaces for page and component objects
-interface ComponentContent {
-  id: string
-  name: string
-  type: ComponentType
-  isActive: boolean
-  settings: Record<string, any>
-}
-
-interface PageContent {
-  id: string
-  name: string
-  path: string
-  sections: number
-  lastModified: string
-  components: ComponentContent[]
-  category: CategoryType
-}
+import type { ComponentType, PageType, CategoryType, ComponentContent, PageContent } from "@/lib/store"
 
 // Component icons mapping with proper typing
 const componentIcons: Record<ComponentType, LucideIcon> = {
@@ -131,17 +91,25 @@ interface EditingSettings {
 }
 
 export default function ContentManagement() {
-  const dispatch = useAppDispatch()
-  const { pages, selectedPage, selectedComponent, categories } = useAppSelector((state) => state.content)
+  const {
+    pages,
+    selectedPage,
+    selectedComponent,
+    categories,
+    selectPage,
+    selectComponent,
+    updateComponentSettings,
+    toggleComponent,
+  } = useContentStore()
   const [editingSettings, setEditingSettings] = useState<EditingSettings>({})
   const [activeCategory, setActiveCategory] = useState<CategoryType>("main")
 
   const handlePageSelect = (pageId: string): void => {
-    dispatch(selectPage(pageId))
+    selectPage(pageId)
   }
 
   const handleComponentSelect = (componentId: string): void => {
-    dispatch(selectComponent(componentId))
+    selectComponent(componentId)
     if (selectedPage) {
       const component = selectedPage.components.find((c: ComponentContent) => c.id === componentId)
       if (component) {
@@ -152,17 +120,15 @@ export default function ContentManagement() {
 
   const handleSaveSettings = (): void => {
     if (selectedComponent) {
-      dispatch(
-        updateComponentSettings({
-          componentId: selectedComponent.id,
-          settings: editingSettings,
-        }),
-      )
+      updateComponentSettings({
+        componentId: selectedComponent.id,
+        settings: editingSettings,
+      })
     }
   }
 
   const handleToggleComponent = (componentId: string): void => {
-    dispatch(toggleComponent(componentId))
+    toggleComponent(componentId)
   }
 
   const handleInputChange = (field: string, value: string | number): void => {
@@ -189,7 +155,7 @@ export default function ContentManagement() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Button variant="outline" size="sm" onClick={() => dispatch(selectComponent(""))} className="mr-4">
+            <Button variant="outline" size="sm" onClick={() => selectComponent("")} className="mr-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Components
             </Button>
@@ -442,7 +408,7 @@ export default function ContentManagement() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Button variant="outline" size="sm" onClick={() => dispatch(selectPage(""))} className="mr-4">
+            <Button variant="outline" size="sm" onClick={() => selectPage("")} className="mr-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Pages
             </Button>
@@ -615,7 +581,10 @@ export default function ContentManagement() {
 
       {/* Pages Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories[activeCategory].map((page: PageContent) => {
+        {categories[activeCategory].map((pageId: string) => {
+          const page = pages.find((p: PageContent) => p.id === pageId)
+          if (!page) return null
+
           const PageIcon = getPageIcon(page.id)
           return (
             <Card

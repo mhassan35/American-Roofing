@@ -6,7 +6,10 @@ import Footer from "@/components/footer"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import CookieConsent from "@/components/cookie-consent"
+// import AdminButton from "@/components/admin-button"
+// import LeadFormHandler from "@/components/website/LeadFormHandler"
 import Providers from "./providers"
+
 
 export default function ClientLayout({
   children,
@@ -21,6 +24,9 @@ export default function ClientLayout({
       <Providers>
         {!isAdminRoute && <Header />}
         <main className="min-h-screen">{children}</main>
+      
+        {/* <AdminButton />
+        <LeadFormHandler /> */}
         {!isAdminRoute && <Footer />}
         <Toaster />
         <CookieConsent />
