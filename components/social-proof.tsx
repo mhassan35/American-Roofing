@@ -7,7 +7,46 @@ import { Star, ChevronLeft, ChevronRight, User, MapPin, Calendar } from "lucide-
 import { Button } from "@/components/ui/button"
 
 const reviews = [
-  // ... same review data
+  {
+    id: 1,
+    name: "Jennifer L.",
+    location: "Houston, TX",
+    rating: 5,
+    text: "American Roofing replaced our entire roof after a major storm. Their team was professional, efficient, and the quality of work exceeded our expectations. They even helped with our insurance claim!",
+    date: "June 15, 2023",
+  },
+  {
+    id: 2,
+    name: "Michael T.",
+    location: "Katy, TX",
+    rating: 5,
+    text: "I had several roofing companies give me quotes, but American Roofing stood out with their detailed assessment and fair pricing. The work was completed on schedule and my new roof looks fantastic.",
+    date: "August 3, 2023",
+  },
+  {
+    id: 3,
+    name: "Sarah W.",
+    location: "The Woodlands, TX",
+    rating: 5,
+    text: "After a small leak during a heavy rain, American Roofing came out the same day to assess the damage. Their repair was quick and affordable, and they even did a full inspection to make sure there weren't any other issues.",
+    date: "September 22, 2023",
+  },
+  {
+    id: 4,
+    name: "Robert J.",
+    location: "Pearland, TX",
+    rating: 5,
+    text: "The team at American Roofing was exceptional from start to finish. They guided me through the entire process, helped with material selection, and completed the installation with remarkable attention to detail.",
+    date: "October 11, 2023",
+  },
+  {
+    id: 5,
+    name: "Lisa M.",
+    location: "Sugar Land, TX",
+    rating: 5,
+    text: "I can't say enough good things about American Roofing. Their customer service is outstanding, and the quality of their work is top-notch. My new roof looks beautiful and was completed on time and on budget.",
+    date: "November 5, 2023",
+  },
 ]
 
 export default function SocialProof() {
