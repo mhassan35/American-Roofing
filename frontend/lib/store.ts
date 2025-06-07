@@ -70,9 +70,7 @@ export const useLeadStore = create<LeadStore>()(
 
       updateLeadStatus: (id, status) =>
         set((state) => ({
-          leads: state.leads.map((lead) =>
-            lead.id === id ? { ...lead, status } : lead
-          ),
+          leads: state.leads.map((lead) => (lead.id === id ? { ...lead, status } : lead)),
         })),
 
       deleteLead: (id) =>
@@ -94,12 +92,11 @@ export const useLeadStore = create<LeadStore>()(
     }),
     {
       name: "lead-storage",
-    }
-  )
+    },
+  ),
 )
 
-
-// Auth Store (replaces authSlice)
+// Auth Store (now with persist middleware)
 interface User {
   id: string
   email: string
@@ -115,7 +112,6 @@ interface AuthState {
   login: (credentials: { email: string; password: string }) => Promise<void>
   logout: () => void
   clearError: () => void
-  initializeAuth: () => void
 }
 
 const adminUser = {
@@ -126,82 +122,65 @@ const adminUser = {
   role: "Administrator",
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  isAuthenticated: false,
-  user: null,
-  isLoading: false,
-  error: null,
-
-  login: async (credentials) => {
-    set({ isLoading: true, error: null })
-
-    try {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      if (credentials.email === adminUser.email && credentials.password === adminUser.password) {
-        const { password, ...userWithoutPassword } = adminUser
-        set({
-          isAuthenticated: true,
-          user: userWithoutPassword,
-          isLoading: false,
-          error: null,
-        })
-        localStorage.setItem("adminAuth", "true")
-        localStorage.setItem("adminUser", JSON.stringify(userWithoutPassword))
-      } else {
-        set({
-          isAuthenticated: false,
-          user: null,
-          isLoading: false,
-          error: "Invalid email or password",
-        })
-      }
-    } catch (error) {
-      set({
-        isAuthenticated: false,
-        user: null,
-        isLoading: false,
-        error: "Login failed. Please try again.",
-      })
-    }
-  },
-
-  logout: () => {
-    set({
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
       isAuthenticated: false,
       user: null,
       isLoading: false,
       error: null,
-    })
-    localStorage.removeItem("adminAuth")
-    localStorage.removeItem("adminUser")
-  },
 
-  clearError: () => {
-    set({ error: null })
-  },
+      login: async (credentials) => {
+        set({ isLoading: true, error: null })
 
-  initializeAuth: () => {
-    const isAuth = localStorage.getItem("adminAuth")
-    const userStr = localStorage.getItem("adminUser")
+        try {
+          // Simulate API delay
+          await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    if (isAuth === "true" && userStr) {
-      try {
-        const user = JSON.parse(userStr)
+          if (credentials.email === adminUser.email && credentials.password === adminUser.password) {
+            const { password, ...userWithoutPassword } = adminUser
+            set({
+              isAuthenticated: true,
+              user: userWithoutPassword,
+              isLoading: false,
+              error: null,
+            })
+          } else {
+            set({
+              isAuthenticated: false,
+              user: null,
+              isLoading: false,
+              error: "Invalid email or password",
+            })
+          }
+        } catch (error) {
+          set({
+            isAuthenticated: false,
+            user: null,
+            isLoading: false,
+            error: "Login failed. Please try again.",
+          })
+        }
+      },
+
+      logout: () => {
         set({
-          isAuthenticated: true,
-          user,
+          isAuthenticated: false,
+          user: null,
           isLoading: false,
           error: null,
         })
-      } catch (error) {
-        localStorage.removeItem("adminAuth")
-        localStorage.removeItem("adminUser")
-      }
-    }
-  },
-}))
+      },
+
+      clearError: () => {
+        set({ error: null })
+      },
+    }),
+    {
+      name: "admin-auth-storage",
+    },
+  ),
+)
 
 // UI Store (replaces uiSlice)
 interface UIState {

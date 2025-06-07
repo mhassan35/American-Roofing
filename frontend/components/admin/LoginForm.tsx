@@ -47,7 +47,7 @@ export default function LoginForm() {
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     placeholder="admin@americanroofing.com"
-                    className="pl-10 h-11 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                    className="pl-10 h-11 border-gray-100"
                     required
                   />
                 </div>
@@ -62,7 +62,7 @@ export default function LoginForm() {
                     value={formData.password}
                     onChange={(e) => handleInputChange("password", e.target.value)}
                     placeholder="Enter your password"
-                    className="pl-10 pr-10 h-11 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                    className="pl-10 pr-10 h-11 border-gray-200"
                     required
                   />
                   <button
