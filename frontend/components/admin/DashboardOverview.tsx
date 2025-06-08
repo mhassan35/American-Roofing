@@ -134,7 +134,7 @@ export default function DashboardOverview() {
           <CardContent>
             <div className="space-y-4">
               {recentLeads.map((lead) => (
-                <div key={lead.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div key={lead._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-4">
                     <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
                       <span className="text-white font-semibold text-sm">

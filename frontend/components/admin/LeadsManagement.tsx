@@ -243,7 +243,7 @@ export default function LeadsManagement() {
                   </tr>
                 ) : (
                   filteredLeads.map((lead) => (
-                    <tr key={lead.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <tr key={lead._id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="p-4">
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
@@ -294,7 +294,7 @@ export default function LeadsManagement() {
                       <td className="p-4">
                         <Select
                           value={lead.status}
-                          onValueChange={(value) => updateLeadStatus(lead.id, value as Lead["status"])}
+                          onValueChange={(value) => updateLeadStatus(lead._id, value as Lead["status"])}
                         >
                           <SelectTrigger className="w-32">
                             <Badge className={getStatusColor(lead.status)}>{lead.status}</Badge>
@@ -327,7 +327,7 @@ export default function LeadsManagement() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => deleteLead(lead.id)}
+                            onClick={() => deleteLead(lead._id)}
                             className="text-red-600 hover:text-red-700"
                           >
                             <Trash2 className="h-4 w-4" />

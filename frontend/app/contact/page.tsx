@@ -48,7 +48,6 @@ export default function ContactPage() {
     }
 
     const result = await response.json();
-    console.log('Form submitted successfully:', result);
 
     // Reset form
     setFormData({

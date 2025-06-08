@@ -89,11 +89,26 @@ const GetLeads = async (req, res) => {
 
    try {
     const leads = await contact.find().sort({ createdAt: -1 });
-    console.log(leads);
     res.status(200).json(leads);
   } catch (error) {
     console.error('Error fetching leads:', error);
     res.status(500).json({ error: 'Server error' });
+  }
+};
+
+const DeleteContact = async (req, res) => {
+  const { id } = req.body;
+
+  try {
+    const deletedLead = await contact.findByIdAndDelete(id);
+    if (!deletedLead) {
+      return res.status(404).json({ message: 'Lead not found' });
+    }
+
+    res.status(200).json({ message: 'Lead deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting lead:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
@@ -140,4 +155,4 @@ const GetLeads = async (req, res) => {
 
 
 
-module.exports = { FormSubmission,GetLeads  };
+module.exports = { FormSubmission,GetLeads,DeleteContact  };

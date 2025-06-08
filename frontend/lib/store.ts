@@ -3,7 +3,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
-// Lead Form Store (for modal open/close)
+
 interface LeadFormState {
   isOpen: boolean
   openLeadForm: () => void
@@ -16,10 +16,9 @@ export const useLeadFormStore = create<LeadFormState>((set) => ({
   closeLeadForm: () => set({ isOpen: false }),
 }))
 
-// Lead Data Store (for admin dashboard)
-
+// Lead Form Store (for modal open/close)
 export interface Lead {
-  id: number
+  _id: string // <-- MongoDB ID
   firstName: string
   lastName: string
   email: string
@@ -38,9 +37,9 @@ export interface Lead {
 
 interface LeadStore {
   leads: Lead[]
-  addLead: (lead: Omit<Lead, "id" | "date" | "status">) => void
-  updateLeadStatus: (id: number, status: Lead["status"]) => void
-  deleteLead: (id: number) => void
+  addLead: (lead: Omit<Lead, "_id" | "date" | "status">) => void
+  updateLeadStatus: (id: string, status: Lead["status"]) => void
+  deleteLead: (id: string) => void
   getStats: () => {
     total: number
     new: number
@@ -60,7 +59,7 @@ export const useLeadStore = create<LeadStore>()(
           leads: [
             {
               ...leadData,
-              id: Math.max(...state.leads.map((l) => l.id), 0) + 1,
+              _id: Math.random().toString(36).substring(2, 15), // Temporary ID for local testing
               date: new Date().toISOString().split("T")[0],
               status: "new",
             },
@@ -68,15 +67,28 @@ export const useLeadStore = create<LeadStore>()(
           ],
         })),
 
-      updateLeadStatus: (id, status) =>
+        updateLeadStatus: (id, status) =>
         set((state) => ({
-          leads: state.leads.map((lead) => (lead.id === id ? { ...lead, status } : lead)),
+          leads: state.leads.map((lead) => (lead._id === id ? { ...lead, status } : lead)),
         })),
 
-      deleteLead: (id) =>
-        set((state) => ({
-          leads: state.leads.filter((lead) => lead.id !== id),
-        })),
+      deleteLead: async (_id) => {
+        try {
+          await fetch("http://localhost:8080/api/deletecontact", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ id: _id }),
+          })
+
+          set((state) => ({
+            leads: state.leads.filter((lead) => lead._id !== _id),
+          }))
+        } catch (err) {
+          console.error("Failed to delete lead:", err)
+        }
+      },
 
       getStats: () => {
         const leads = get().leads
@@ -92,9 +104,13 @@ export const useLeadStore = create<LeadStore>()(
     }),
     {
       name: "lead-storage",
-    },
-  ),
+    }
+  )
 )
+
+
+
+
 
 // Auth Store (now with persist middleware)
 interface User {
