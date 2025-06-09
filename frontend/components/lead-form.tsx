@@ -65,7 +65,6 @@ export default function LeadForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
   const { toast } = useToast()
-  
 
   const [formData, setFormData] = useState({
     service: "",

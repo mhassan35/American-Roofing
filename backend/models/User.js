@@ -26,7 +26,6 @@ const leadSchema = new mongoose.Schema({
   service: {
     type: String,
     required: true,
-    enum: ['roof-replacement', 'roof-repair', 'gutter-installation', 'gutter-repair', 'siding-installation', 'siding-repair', 'inspection', 'emergency-repair', 'other']
   },
   message: {
     type: String,
@@ -40,12 +39,10 @@ const leadSchema = new mongoose.Schema({
   urgency: {
     type: String,
     required: true,
-    enum: ['urgent', 'within-week', 'within-month', 'flexible']
   },
   propertyType: {
     type: String,
     required: true,
-    enum: ['residential', 'commercial', 'industrial']
   },
   address: {
     type: String,
@@ -63,7 +60,6 @@ const leadSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['new', 'contacted', 'quoted', 'converted', 'closed'],
     default: 'new'
   },
   createdAt: {

@@ -1,129 +1,47 @@
 "use client"
 
-import { useLeadFormStore } from "@/lib/store"
 import { Button } from "@/components/ui/button"
-import { motion, useAnimation } from "framer-motion"
-import { useInView } from "react-intersection-observer"
-import { useEffect } from "react"
-import { ArrowRight, CheckCircle } from "lucide-react"
+import { useLeadFormStore } from "@/lib/store"
 
-export default function CTASection() {
+interface CTASectionProps {
+  content?: {
+    title?: string
+    subtitle?: string
+    primaryCta?: string
+    secondaryCta?: string
+  }
+}
+
+export default function CTASection({ content }: CTASectionProps) {
   const { openLeadForm } = useLeadFormStore()
-  const [ref, inView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  })
 
-  const controls = useAnimation()
-
-  useEffect(() => {
-    if (inView) {
-      controls.start("visible")
-    }
-  }, [controls, inView])
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
-  }
+  const title = content?.title || "Ready to Get Started?"
+  const subtitle = content?.subtitle || "Contact us today for your free estimate"
+  const primaryCta = content?.primaryCta || "Get Free Estimate"
+  const secondaryCta = content?.secondaryCta || "Call (713) 555-1234"
 
   return (
-    <section id="cta" className="corporate-section bg-brand-orange/5 scroll-mt-20">
-      <div className="corporate-container px-4 sm:px-6 lg:px-8 py-12">
-        <motion.div
-          ref={ref}
-          variants={containerVariants}
-          initial="hidden"
-          animate={controls}
-          className="max-w-3xl mx-auto text-center"
-        >
-          <motion.h2 variants={itemVariants} className="text-xl sm:text-2xl md:text-3xl font-semibold mb-4 text-gray-800">
-            Ready to Transform Your Roof?
-          </motion.h2>
+    <section className="py-16 bg-orange-500">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{title}</h2>
+        <p className="text-xl text-orange-100 mb-8 max-w-3xl mx-auto">{subtitle}</p>
 
-          <motion.p variants={itemVariants} className="text-sm sm:text-base text-gray-600 mb-6">
-            Get a free, no-obligation quote in under 60 seconds and see why Houston homeowners trust American Roofing.
-          </motion.p>
-
-          <motion.div
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 mb-10"
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button
+            size="lg"
+            className="bg-white text-orange-500 hover:bg-gray-100 px-8 py-3 text-lg font-semibold"
+            onClick={openLeadForm}
           >
-            <Button
-              onClick={openLeadForm}
-              className="w-full sm:w-auto btn-corporate bg-brand-orange hover:bg-brand-orange/90 text-white shadow-sm hover:shadow-md"
-            >
-              Start Your Free Estimate
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto btn-corporate border-brand-green text-brand-green hover:bg-brand-green/10"
-            >
-              Learn More <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-left"
+            {primaryCta}
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="border-white text-white hover:bg-white hover:text-orange-500 px-8 py-3 text-lg font-semibold"
           >
-            <div className="bg-white p-4 rounded-md shadow-sm">
-              <div className="flex items-start mb-3">
-                <div className="flat-icon-secondary rounded-full mr-3 p-1.5 sm:p-2">
-                  <CheckCircle className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-base mb-1 text-gray-800">No Obligation</h3>
-                  <p className="text-sm text-gray-600">
-                    Get a detailed quote with no pressure or commitment required.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-md shadow-sm">
-              <div className="flex items-start mb-3">
-                <div className="flat-icon-secondary rounded-full mr-3 p-1.5 sm:p-2">
-                  <CheckCircle className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-base mb-1 text-gray-800">Fast Response</h3>
-                  <p className="text-sm text-gray-600">
-                    Our team will contact you quickly to discuss your roofing needs.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-md shadow-sm">
-              <div className="flex items-start mb-3">
-                <div className="flat-icon-secondary rounded-full mr-3 p-1.5 sm:p-2">
-                  <CheckCircle className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-base mb-1 text-gray-800">Transparent Pricing</h3>
-                  <p className="text-sm text-gray-600">
-                    No hidden fees or surprises – just honest, upfront pricing.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
+            {secondaryCta}
+          </Button>
+        </div>
       </div>
     </section>
   )

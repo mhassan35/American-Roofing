@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 const Lead = require('../models/User');
 
 const FormSubmission = async (req, res) => {
-  console.log(req.body);
 
   try {
     // Create new lead with all the data

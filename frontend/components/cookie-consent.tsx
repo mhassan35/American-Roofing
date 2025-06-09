@@ -6,8 +6,11 @@ import { motion, AnimatePresence } from "framer-motion"
 
 export default function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
+    setIsLoaded(true)
+
     // Check if user has already consented
     const hasConsented = localStorage.getItem("cookieConsent")
     if (!hasConsented) {
@@ -28,6 +31,11 @@ export default function CookieConsent() {
   const handleDecline = () => {
     localStorage.setItem("cookieConsent", "false")
     setIsVisible(false)
+  }
+
+  // Don't render anything until client-side hydration is complete
+  if (!isLoaded) {
+    return null
   }
 
   return (

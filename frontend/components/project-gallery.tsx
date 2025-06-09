@@ -1,231 +1,121 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState } from "react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import {
-  ChevronLeft,
-  ChevronRight,
-  Maximize2,
-  X,
-  Home,
-  PenToolIcon as Tool,
-} from "lucide-react"
 
-const projects = [
-  {
-    id: 1,
-    title: "Complete Roof Replacement",
-    location: "Memorial, Houston",
-    description: "Full replacement of an aging shingle roof with premium architectural shingles.",
-    icon: Home,
-    testimonial:
-      "The transformation is incredible! Our home looks brand new and we've already received compliments from neighbors.",
-    customerName: "The Johnson Family",
-  },
-  {
-    id: 2,
-    title: "Storm Damage Restoration",
-    location: "Katy, TX",
-    description: "Comprehensive repair and partial replacement after severe hail damage.",
-    icon: Tool,
-    testimonial:
-      "American Roofing was there for us when we needed them most. They handled our insurance claim and restored our roof quickly.",
-    customerName: "David & Susan Miller",
-  },
-  {
-    id: 3,
-    title: "New Construction Roofing",
-    location: "The Woodlands, TX",
-    description: "Installation of a modern metal roof system on a newly constructed luxury home.",
-    icon: Home,
-    testimonial:
-      "The metal roof not only looks stunning but has already helped with our energy bills during the hot Houston summer.",
-    customerName: "The Williams Family",
-  },
-]
+interface ProjectGalleryProps {
+  content?: {
+    title?: string
+    subtitle?: string
+    categories?: string[]
+  }
+}
 
-export default function ProjectGallery() {
-  const [currentProject, setCurrentProject] = useState(0)
-  const [showBefore, setShowBefore] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+export default function ProjectGallery({ content }: ProjectGalleryProps) {
+  const title = content?.title || "Recent Projects"
+  const subtitle = content?.subtitle || "See our quality work in action"
+  const categories = content?.categories || ["All", "Roof Replacement", "Roof Repair", "Storm Damage"]
 
-  const nextProject = () => setCurrentProject((prev) => (prev + 1) % projects.length)
-  const prevProject = () => setCurrentProject((prev) => (prev - 1 + projects.length) % projects.length)
+  const [activeCategory, setActiveCategory] = useState("All")
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!isModalOpen) nextProject()
-    }, 6000)
-    return () => clearInterval(interval)
-  }, [isModalOpen])
+  const projects = [
+    {
+      id: 1,
+      title: "Complete Roof Replacement",
+      category: "Roof Replacement",
+      image: "/placeholder.svg?height=300&width=400",
+      description: "Modern shingle installation",
+    },
+    {
+      id: 2,
+      title: "Storm Damage Repair",
+      category: "Storm Damage",
+      image: "/placeholder.svg?height=300&width=400",
+      description: "Hail damage restoration",
+    },
+    {
+      id: 3,
+      title: "Emergency Leak Repair",
+      category: "Roof Repair",
+      image: "/placeholder.svg?height=300&width=400",
+      description: "Quick leak fix",
+    },
+    {
+      id: 4,
+      title: "Commercial Roofing",
+      category: "Commercial",
+      image: "/placeholder.svg?height=300&width=400",
+      description: "Large commercial project",
+    },
+    {
+      id: 5,
+      title: "Residential Replacement",
+      category: "Roof Replacement",
+      image: "/placeholder.svg?height=300&width=400",
+      description: "Family home renovation",
+    },
+    {
+      id: 6,
+      title: "Gutter Installation",
+      category: "Gutters",
+      image: "/placeholder.svg?height=300&width=400",
+      description: "Complete gutter system",
+    },
+  ]
+
+  const filteredProjects =
+    activeCategory === "All" ? projects : projects.filter((project) => project.category === activeCategory)
 
   return (
-    <section className="bg-brand-beige px-4 sm:px-6 lg:px-8 py-16">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
+    <section className="py-16 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">
-            Before & After Gallery
-          </h2>
-          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-            See the transformation our roofing services can make with these real projects from Houston homeowners.
-          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{title}</h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">{subtitle}</p>
         </div>
 
-        {/* Carousel */}
-        <div className="relative rounded-2xl overflow-hidden shadow-xl">
-          <div className="relative aspect-[16/9] w-full">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`${currentProject}-${showBefore}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
-                className="absolute inset-0"
-              >
-                <div
-                  className={`w-full h-full ${
-                    showBefore ? "bg-gray-300" : "bg-gradient-to-r from-brand-green/20 to-brand-orange/20"
-                  } flex items-center justify-center`}
-                >
-                  <div
-                    className={`flat-icon ${
-                      showBefore ? "flat-icon-secondary" : "flat-icon-primary"
-                    } p-10 sm:p-12 md:p-16 rounded-full`}
-                  >
-                    {React.createElement(projects[currentProject].icon, {
-                      className: "w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24",
-                    })}
+        {/* Category Filter */}
+        <div className="flex flex-wrap justify-center gap-4 mb-12">
+          {categories.map((category) => (
+            <Button
+              key={category}
+              variant={activeCategory === category ? "default" : "outline"}
+              onClick={() => setActiveCategory(category)}
+              className={
+                activeCategory === category
+                  ? "bg-orange-500 hover:bg-orange-600"
+                  : "border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
+              }
+            >
+              {category}
+            </Button>
+          ))}
+        </div>
+
+        {/* Projects Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredProjects.map((project) => (
+            <div key={project.id} className="group cursor-pointer">
+              <div className="relative overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                <Image
+                  src={project.image || "/placeholder.svg"}
+                  alt={project.title}
+                  width={400}
+                  height={300}
+                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <h3 className="text-xl font-semibold mb-2">{project.title}</h3>
+                    <p className="text-gray-200">{project.description}</p>
                   </div>
                 </div>
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-
-                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 text-white">
-                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">{projects[currentProject].title}</h3>
-                  <p className="text-base sm:text-lg text-white/80 mb-2">{projects[currentProject].location}</p>
-                  <p className="text-sm sm:text-base text-white/70">{projects[currentProject].description}</p>
-                </div>
-
-                <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex space-x-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-white/20 text-white text-sm sm:text-base hover:bg-white/30"
-                    onClick={() => setIsModalOpen(true)}
-                  >
-                    <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    Enlarge
-                  </Button>
-                </div>
-
-                <div className="absolute top-4 left-4 sm:top-6 sm:left-6">
-                  <span className="bg-brand-orange text-white px-4 sm:px-6 py-1 sm:py-2 rounded-full text-sm sm:text-base font-bold">
-                    {showBefore ? "BEFORE" : "AFTER"}
-                  </span>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Navigation buttons */}
-          <div className="absolute top-1/2 left-2 sm:left-4 transform -translate-y-1/2 z-10">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full bg-white/20 text-white hover:bg-white/30 h-10 w-10 sm:h-12 sm:w-12"
-              onClick={prevProject}
-            >
-              <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-            </Button>
-          </div>
-          <div className="absolute top-1/2 right-2 sm:right-4 transform -translate-y-1/2 z-10">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full bg-white/20 text-white hover:bg-white/30 h-10 w-10 sm:h-12 sm:w-12"
-              onClick={nextProject}
-            >
-              <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Carousel controls */}
-        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:justify-between items-center gap-4">
-          <div className="flex space-x-2 sm:space-x-3">
-            {projects.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentProject(index)}
-                className={`h-3 w-3 sm:h-4 sm:w-4 rounded-full transition-colors ${
-                  currentProject === index ? "bg-brand-orange" : "bg-gray-300"
-                }`}
-                aria-label={`Go to project ${index + 1}`}
-              />
-            ))}
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-brand-green text-brand-green hover:bg-brand-green/10 text-sm sm:text-base font-medium"
-            onClick={() => setShowBefore(!showBefore)}
-          >
-            Show {showBefore ? "After" : "Before"}
-          </Button>
-        </div>
-
-        {/* Testimonial */}
-        <div className="mt-10 bg-white p-6 sm:p-8 rounded-xl shadow-soft">
-          <div className="flex flex-col sm:flex-row items-start">
-            <div className="text-5xl sm:text-6xl text-brand-orange font-serif mr-4 sm:mr-6">"</div>
-            <div>
-              <p className="text-base sm:text-lg md:text-xl text-gray-600 italic mb-4">
-                {projects[currentProject].testimonial}
-              </p>
-              <p className="text-base sm:text-lg font-medium text-gray-800">
-                — {projects[currentProject].customerName}
-              </p>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
-
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute top-4 right-4 sm:top-6 sm:right-6 rounded-full bg-white/10 text-white hover:bg-white/20 h-10 w-10 sm:h-14 sm:w-14"
-            onClick={() => setIsModalOpen(false)}
-          >
-            <X className="h-5 w-5 sm:h-8 sm:w-8" />
-          </Button>
-
-          <div className="relative w-full max-w-3xl sm:max-w-6xl aspect-[16/9] bg-gradient-to-r from-brand-green/20 to-brand-orange/20 flex items-center justify-center">
-            <div className={`flat-icon ${showBefore ? "flat-icon-secondary" : "flat-icon-primary"} p-10 sm:p-16 rounded-full`}>
-              {React.createElement(projects[currentProject].icon, {
-                className: "h-20 w-20 sm:h-28 sm:w-28 md:h-32 md:w-32",
-              })}
-            </div>
-          </div>
-
-          <div className="absolute bottom-6 sm:bottom-10 left-1/2 transform -translate-x-1/2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-white/10 text-white hover:bg-white/20 text-sm sm:text-lg"
-              onClick={() => setShowBefore(!showBefore)}
-            >
-              Show {showBefore ? "After" : "Before"}
-            </Button>
-          </div>
-        </div>
-      )}
     </section>
   )
 }

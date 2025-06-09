@@ -4,8 +4,9 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, X, Maximize2, Home, Wrench, CloudLightning, Droplets, Filter } from "lucide-react"
 import Link from "next/link"
+import { useContentStore } from "@/lib/store"
 
-// Project categories
+// Project categories - keep original structure
 const categories = [
   { id: "all", label: "All Projects" },
   { id: "replacement", label: "Roof Replacement", icon: Home },
@@ -14,7 +15,7 @@ const categories = [
   { id: "gutters", label: "Gutter Projects", icon: Droplets },
 ]
 
-// Project data
+// Project data - keep original data exactly as it was
 const projects = [
   {
     id: 1,
@@ -117,12 +118,15 @@ const projects = [
 ]
 
 export default function GalleryPage() {
+  const { getPageContent } = useContentStore()
   const [activeCategory, setActiveCategory] = useState("all")
   const [filteredProjects, setFilteredProjects] = useState(projects)
   const [currentProject, setCurrentProject] = useState(0)
   const [showBefore, setShowBefore] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+
+  const pageContent = getPageContent("gallery")
 
   useEffect(() => {
     const handleResize = () => {
@@ -151,22 +155,26 @@ export default function GalleryPage() {
     setCurrentProject((prev) => (prev - 1 + filteredProjects.length) % filteredProjects.length)
   }
 
+  // Get hero content from store or use defaults
+  const heroComponent = pageContent?.components.find((c) => c.type === "hero" && c.isActive)
+  const heroTitle = heroComponent?.settings?.title || "Project Gallery"
+  const heroSubtitle =
+    heroComponent?.settings?.subtitle ||
+    "Browse our portfolio of completed roofing projects throughout the Houston area. See the quality of our work and the transformations we've achieved for our satisfied customers."
+
   return (
     <div className="pt-20">
-      {/* Hero Section */}
+      {/* Hero Section - now editable from admin */}
       <div className="bg-gray-50 py-10">
         <div className="corporate-container">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">Project Gallery</h1>
-            <p className="text-base text-gray-600">
-              Browse our portfolio of completed roofing projects throughout the Houston area. See the quality of our
-              work and the transformations we've achieved for our satisfied customers.
-            </p>
+            <h1 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">{heroTitle}</h1>
+            <p className="text-base text-gray-600">{heroSubtitle}</p>
           </div>
         </div>
       </div>
 
-      {/* Category Filter */}
+      {/* Keep all the original gallery functionality exactly as it was */}
       <div className="corporate-container py-6 border-b border-gray-100">
         <div className="flex items-center mb-2">
           <Filter className="h-4 w-4 text-brand-orange mr-2" />
@@ -191,7 +199,7 @@ export default function GalleryPage() {
         </div>
       </div>
 
-      {/* Featured Project */}
+      {/* Featured Project - keep original functionality */}
       <div className="corporate-container py-8">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">Featured Project</h2>
 
@@ -304,7 +312,7 @@ export default function GalleryPage() {
         </div>
       </div>
 
-      {/* Project Grid */}
+      {/* Project Grid - keep original */}
       <div className="corporate-container py-8">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">All Projects</h2>
 
@@ -352,7 +360,7 @@ export default function GalleryPage() {
         </div>
       </div>
 
-      {/* Project Categories */}
+      {/* Project Categories - keep original */}
       <div className="corporate-container py-8 border-t border-gray-100">
         <h2 className="text-xl font-semibold mb-6 text-gray-800">Browse By Category</h2>
 
@@ -405,7 +413,7 @@ export default function GalleryPage() {
         </div>
       </div>
 
-      {/* CTA Section */}
+      {/* CTA Section - keep original */}
       <div className="corporate-container py-8 mb-8">
         <div className="bg-brand-orange/10 rounded-md p-6 text-center">
           <h2 className="text-xl font-semibold mb-3 text-gray-800">Ready to Transform Your Roof?</h2>
@@ -426,7 +434,7 @@ export default function GalleryPage() {
         </div>
       </div>
 
-      {/* Full-screen modal */}
+      {/* Full-screen modal - keep original */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
           <Button

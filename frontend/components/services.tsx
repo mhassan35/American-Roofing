@@ -1,153 +1,91 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Home, Wrench, CloudLightning, Search, Droplets, FileText } from "lucide-react"
 import Link from "next/link"
-import { motion } from "framer-motion"
-import {
-  Home,
-  Wrench,
-  CloudLightning,
-  Search,
-  Droplets,
-  FileText,
-  ArrowRight,
-} from "lucide-react"
 
-const services = [
-  {
-    id: "roof-replacement",
-    title: "Roof Replacement",
-    description:
-      "Complete roof replacement with premium materials and expert installation.",
-    icon: Home,
-    link: "/services/roof-replacement",
-  },
-  {
-    id: "roof-repair",
-    title: "Roof Repair",
-    description:
-      "Fast, reliable repairs for leaks, damaged shingles, and other roofing issues.",
-    icon: Wrench,
-    link: "/services/roof-repair",
-  },
-  {
-    id: "storm-damage",
-    title: "Storm Damage Restoration",
-    description:
-      "Comprehensive restoration services for roofs damaged by storms and severe weather.",
-    icon: CloudLightning,
-    link: "/services/storm-damage",
-  },
-  {
-    id: "inspections",
-    title: "Free Inspections",
-    description:
-      "Thorough roof inspections to identify potential issues before they become major problems.",
-    icon: Search,
-    link: "/services/inspections",
-  },
-  {
-    id: "gutters",
-    title: "Gutter Services",
-    description:
-      "Installation, repair, and maintenance of gutters and downspouts to protect your home.",
-    icon: Droplets,
-    link: "/services/gutters",
-  },
-  {
-    id: "insurance",
-    title: "Insurance Claim Help",
-    description:
-      "Expert assistance navigating the insurance claim process for roof damage.",
-    icon: FileText,
-    link: "/services/insurance",
-  },
-]
+interface ServicesProps {
+  content?: {
+    title?: string
+    subtitle?: string
+    services?: Array<{
+      title: string
+      description: string
+      icon?: string
+      link?: string
+    }>
+  }
+}
 
-export default function Services() {
-  const [isVisible, setIsVisible] = useState(false)
+const iconMap = {
+  home: Home,
+  wrench: Wrench,
+  cloud: CloudLightning,
+  search: Search,
+  droplets: Droplets,
+  "file-text": FileText,
+}
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const section = document.getElementById("services-section")
-      if (section) {
-        const { top } = section.getBoundingClientRect()
-        if (top < window.innerHeight * 0.75) {
-          setIsVisible(true)
-        }
-      }
-    }
-
-    window.addEventListener("scroll", handleScroll)
-    handleScroll()
-
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
+export default function Services({ content }: ServicesProps) {
+  const title = content?.title || "Our Roofing Services"
+  const subtitle = content?.subtitle || "Comprehensive solutions for all your roofing needs"
+  const services = content?.services || [
+    {
+      title: "Roof Replacement",
+      description: "Complete roof replacement with premium materials",
+      icon: "home",
+      link: "/services/roof-replacement",
     },
-  }
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  }
+    {
+      title: "Roof Repair",
+      description: "Professional repairs for leaks and damage",
+      icon: "wrench",
+      link: "/services/roof-repair",
+    },
+    {
+      title: "Storm Damage",
+      description: "Emergency storm damage restoration",
+      icon: "cloud",
+      link: "/services/storm-damage",
+    },
+  ]
 
   return (
-    <section
-      id="services-section"
-      className="bg-white px-4 sm:px-6 lg:px-8 py-16"
-    >
-      <div className="max-w-7xl mx-auto">
+    <section className="py-16 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">
-            Our Roofing Services
-          </h2>
-          <p className="mt-4 text-base text-gray-600 max-w-2xl mx-auto">
-            We provide comprehensive roofing solutions for homeowners in
-            Houston and surrounding areas.
-          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{title}</h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">{subtitle}</p>
         </div>
 
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate={isVisible ? "show" : "hidden"}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {services.map((service) => (
-            <motion.div
-              key={service.id}
-              variants={item}
-              className="bg-white rounded-lg shadow hover:shadow-lg transition duration-300"
-            >
-              <div className="h-40 flex items-center justify-center bg-gradient-to-r from-brand-green/10 to-brand-orange/10 rounded-t-lg">
-                <div className="p-4 bg-white rounded-full shadow">
-                  <service.icon className="h-8 w-8 text-brand-orange" />
-                </div>
-              </div>
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {service.title}
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  {service.description}
-                </p>
-                <Link
-                  href={service.link}
-                  className="inline-flex items-center text-sm text-brand-orange hover:text-brand-orange/80 font-medium transition-colors"
-                >
-                  Learn More
-                  <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {services.map((service, index) => {
+            const IconComponent = iconMap[service.icon as keyof typeof iconMap] || Home
+
+            return (
+              <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
+                <CardContent className="p-8 text-center">
+                  <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-orange-500 transition-colors duration-300">
+                    <IconComponent className="w-8 h-8 text-orange-500 group-hover:text-white transition-colors duration-300" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">{service.title}</h3>
+                  <p className="text-gray-600 mb-6 leading-relaxed">{service.description}</p>
+                  {service.link && (
+                    <Link href={service.link}>
+                      <Button
+                        variant="outline"
+                        className="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
+                      >
+                        Learn More
+                      </Button>
+                    </Link>
+                  )}
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
       </div>
     </section>
   )
