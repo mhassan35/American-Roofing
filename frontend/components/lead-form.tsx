@@ -65,6 +65,7 @@ export default function LeadForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
   const { toast } = useToast()
+  
 
   const [formData, setFormData] = useState({
     service: "",
@@ -124,86 +125,106 @@ export default function LeadForm() {
     }
   }
 
-  const handleFinalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleFinalSubmit = async (e: React.FormEvent) => { 
+    e.preventDefault() 
+ 
+    if (!formData.name || !formData.phone || !formData.email) { 
+      toast({ 
+        title: "Please fill in all required fields", 
+        description: "Name, phone, and email are required", 
+        variant: "destructive", 
+      }) 
+      return 
+    } 
+ 
+    setIsSubmitting(true) 
+ 
+    try { 
+      // Extract first and last name from the full name 
+      const nameParts = formData.name.trim().split(" ") 
+      const firstName = nameParts[0] || "" 
+      const lastName = nameParts.slice(1).join(" ") || "" 
+ 
+      // Convert file to data URL if exists 
+      let photoUrl = "" 
+      if (formData.photo instanceof File) { 
+        photoUrl = await new Promise<string>((resolve) => { 
+          const reader = new FileReader() 
+          reader.onloadend = () => resolve(reader.result as string) 
+          reader.readAsDataURL(formData.photo!) 
+        }) 
+      } 
 
-    if (!formData.name || !formData.phone || !formData.email) {
-      toast({
-        title: "Please fill in all required fields",
-        description: "Name, phone, and email are required",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsSubmitting(true)
-
-    try {
-      // Extract first and last name from the full name
-      const nameParts = formData.name.trim().split(" ")
-      const firstName = nameParts[0] || ""
-      const lastName = nameParts.slice(1).join(" ") || ""
-
-      // Convert file to data URL if exists
-      let photoUrl = ""
-      if (formData.photo instanceof File) {
-        photoUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader()
-          reader.onloadend = () => resolve(reader.result as string)
-          reader.readAsDataURL(formData.photo!)
-        })
+      // Prepare data for both local store and API
+      const leadData = {
+        firstName, 
+        lastName, 
+        email: formData.email, 
+        phone: formData.phone, 
+        service: formData.service, 
+        message: formData.message || "", 
+        source: "Website Form", 
+        urgency: formData.urgency, 
+        propertyType: formData.propertyType, 
+        address: formData.address, 
+        zipCode: formData.zipCode, 
+        photo: photoUrl, 
       }
 
-      // Add lead to the store using your existing structure
-      addLead({
-        firstName,
-        lastName,
-        email: formData.email,
-        phone: formData.phone,
-        service: formData.service,
-        message: formData.message || "",
-        source: "Website Form",
-        urgency: formData.urgency,
-        propertyType: formData.propertyType,
-        address: formData.address,
-        zipCode: formData.zipCode,
-        photo: photoUrl,
+      // Send data to backend API
+      const response = await fetch('http://localhost:8080/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(leadData),
       })
 
-      setIsSubmitting(false)
-      setIsComplete(true)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
 
-      toast({
-        title: "Lead submitted successfully",
-        description: "Your request has been received and will appear in the admin dashboard",
-      })
-
-      // Reset form after 5 seconds
-      setTimeout(() => {
-        setIsComplete(false)
-        setStep(1)
-        setFormData({
-          service: "",
-          propertyType: "",
-          urgency: "",
-          address: "",
-          zipCode: "",
-          photo: null,
-          name: "",
-          phone: "",
-          email: "",
-          message: "",
-        })
-        closeLeadForm()
-      }, 5000)
-    } catch (error) {
-      setIsSubmitting(false)
-      toast({
-        title: "Error submitting form",
-        description: "Please try again later",
-        variant: "destructive",
-      })
-    }
+      const result = await response.json()
+      console.log('API Response:', result)
+ 
+      // Add lead to the local store
+      addLead(leadData)
+ 
+      setIsSubmitting(false) 
+      setIsComplete(true) 
+ 
+      toast({ 
+        title: "Lead submitted successfully", 
+        description: "Your request has been received and saved to the database", 
+      }) 
+ 
+      // Reset form after 5 seconds 
+      setTimeout(() => { 
+        setIsComplete(false) 
+        setStep(1) 
+        setFormData({ 
+          service: "", 
+          propertyType: "", 
+          urgency: "", 
+          address: "", 
+          zipCode: "", 
+          photo: null, 
+          name: "", 
+          phone: "", 
+          email: "", 
+          message: "", 
+        }) 
+        closeLeadForm() 
+      }, 5000) 
+    } catch (error) { 
+      console.error('Error submitting form:', error)
+      setIsSubmitting(false) 
+      toast({ 
+        title: "Error submitting form", 
+        description: error instanceof Error ? error.message : "Please try again later", 
+        variant: "destructive", 
+      }) 
+    } 
   }
 
   const nextStep = () => {

@@ -2,93 +2,108 @@
 // const User = require('../models/User');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
-const contact = require('../models/User');
+const Lead = require('../models/User');
 
 const FormSubmission = async (req, res) => {
-
-
-  // Check if all fields are filled
-  // if (!name || !email || !password || !role) {
-  //   return res.status(400).json({ message: 'Please fill all fields' });
-  // }
+  console.log(req.body);
 
   try {
+    // Create new lead with all the data
+    const newLead = new Lead({
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.email,
+      phone: req.body.phone,
+      service: req.body.service,
+      message: req.body.message || '',
+      source: req.body.source || 'Website Form',
+      urgency: req.body.urgency,
+      propertyType: req.body.propertyType,
+      address: req.body.address,
+      zipCode: req.body.zipCode,
+      photo: req.body.photo || '',
+    });
 
-const newContact = new contact({
-  firstName: req.body.firstName,
-  lastName: req.body.lastName,
-  email: req.body.email,
-  phone: req.body.phone,
-  service: req.body.service,
-  message: req.body.message,
-});
+    const savedLead = await newLead.save();
 
-const savedContact = await newContact.save();
-
-// Send email
-    const transporter = nodemailer.createTransport({
+       const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.ADMIN_EMAIL,       // your email
-        pass: process.env.ADMIN_EMAIL_PASS,  // app-specific password
+        user: process.env.ADMIN_EMAIL,
+        pass: process.env.ADMIN_EMAIL_PASS,
       },
     });
 
+    // Enhanced email content with all lead information
     const mailOptions = {
       from: process.env.ADMIN_EMAIL,
-      to: process.env.ADMIN_RECEIVER_EMAIL, // where to send
-      subject: 'New Contact Form Submission',
-      text: `
-New contact form submission:
-
-Name: ${savedContact.firstName} ${savedContact.lastName}
-Email: ${savedContact.email}
-Phone: ${savedContact.phone}
-Service: ${savedContact.service}
-Message: ${savedContact.message}
+      to: process.env.ADMIN_RECEIVER_EMAIL,
+      subject: `New ${savedLead.urgency.toUpperCase()} Lead - ${savedLead.service}`,
+      html: `
+        <h2>New Lead Submission</h2>
+        <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px;">
+          <h3>Contact Information</h3>
+          <p><strong>Name:</strong> ${savedLead.firstName} ${savedLead.lastName}</p>
+          <p><strong>Email:</strong> ${savedLead.email}</p>
+          <p><strong>Phone:</strong> ${savedLead.phone}</p>
+          
+          <h3>Service Details</h3>
+          <p><strong>Service:</strong> ${savedLead.service.replace('-', ' ').toUpperCase()}</p>
+          <p><strong>Urgency:</strong> ${savedLead.urgency.replace('-', ' ').toUpperCase()}</p>
+          <p><strong>Property Type:</strong> ${savedLead.propertyType.toUpperCase()}</p>
+          
+          <h3>Property Information</h3>
+          <p><strong>Address:</strong> ${savedLead.address}</p>
+          <p><strong>Zip Code:</strong> ${savedLead.zipCode}</p>
+          
+          <h3>Message</h3>
+          <p>${savedLead.message || 'No message provided'}</p>
+          
+          <h3>Additional Information</h3>
+          <p><strong>Source:</strong> ${savedLead.source}</p>
+          <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+          ${savedLead.photo ? '<p><strong>Photo:</strong> Included (check database)</p>' : '<p><strong>Photo:</strong> Not provided</p>'}
+        </div>
       `,
     };
 
     await transporter.sendMail(mailOptions);
 
     res.status(201).json({
-      message: 'Contact form submitted and email sent',
-      data: savedContact,
+      message: 'Lead submitted successfully and notification sent',
+      data: {
+        id: savedLead._id,
+        firstName: savedLead.firstName,
+        lastName: savedLead.lastName,
+        email: savedLead.email,
+        service: savedLead.service,
+        urgency: savedLead.urgency,
+        createdAt: savedLead.createdAt
+      },
     });
 
- 
-
-  //   // Check if email already exists
-  //   const existingUser = await User.findOne({ email });
-  //   if (existingUser) {
-  //     return res.status(400).json({ message: 'Email already used' });
-  //   }
-
-  //   // Secure the password
-  //   const salt = await bcrypt.genSalt(10);
-  //   const hashedPassword = await bcrypt.hash(password, salt);
-
-  //   // Create new user
-  //   const newUser = new User({
-  //     name,
-  //     email,
-  //     password: hashedPassword,
-  //     role
-  //   });
-
-  //   // Save user to MongoDB
-  //   await newUser.save();
-
-  //   res.status(201).json({ message: 'Signup successful!' });
   } catch (error) {
-    res.status(500).json({ message: 'Something went wrong' });
+    console.error('Error submitting lead:', error);
+    
+    // Handle specific validation errors
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: 'Validation error', 
+        errors: Object.values(error.errors).map(err => err.message)
+      });
+    }
+    
+    res.status(500).json({ 
+      message: 'Something went wrong while submitting the lead',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
 const GetLeads = async (req, res) => {
 
    try {
-    const leads = await contact.find().sort({ createdAt: -1 });
+    const leads = await Lead.find().sort({ createdAt: -1 });
     res.status(200).json(leads);
   } catch (error) {
     console.error('Error fetching leads:', error);
@@ -100,7 +115,7 @@ const DeleteContact = async (req, res) => {
   const { id } = req.body;
 
   try {
-    const deletedLead = await contact.findByIdAndDelete(id);
+    const deletedLead = await Lead.findByIdAndDelete(id);
     if (!deletedLead) {
       return res.status(404).json({ message: 'Lead not found' });
     }
