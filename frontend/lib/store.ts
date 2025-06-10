@@ -18,6 +18,9 @@ export type ComponentType =
   | "service-benefits"
   | "service-process"
   | "service-faqs"
+  | "trust-badges"
+  | "trust-section"
+  | "testimonials"
 
 export type PageType =
   | "home"
@@ -45,7 +48,7 @@ export const useLeadFormStore = create<LeadFormState>((set) => ({
 
 // Lead Form Store (for modal open/close)
 export interface Lead {
-  _id: string // <-- MongoDB ID
+  _id: string
   firstName: string
   lastName: string
   email: string
@@ -86,7 +89,7 @@ export const useLeadStore = create<LeadStore>()(
           leads: [
             {
               ...leadData,
-              _id: Math.random().toString(36).substring(2, 15), // Temporary ID for local testing
+              _id: Math.random().toString(36).substring(2, 15),
               date: new Date().toISOString().split("T")[0],
               status: "new",
             },
@@ -135,7 +138,7 @@ export const useLeadStore = create<LeadStore>()(
   ),
 )
 
-// Auth Store (now with persist middleware)
+// Auth Store
 interface User {
   id: string
   email: string
@@ -173,7 +176,6 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null })
 
         try {
-          // Simulate API delay
           await new Promise((resolve) => setTimeout(resolve, 1000))
 
           if (credentials.email === adminUser.email && credentials.password === adminUser.password) {
@@ -221,7 +223,7 @@ export const useAuthStore = create<AuthState>()(
   ),
 )
 
-// UI Store (replaces uiSlice)
+// UI Store
 interface UIState {
   sidebarOpen: boolean
   activeTab: string
@@ -243,7 +245,7 @@ export const useUIStore = create<UIState>((set) => ({
   setIsMobile: (mobile) => set({ isMobile: mobile }),
 }))
 
-// Enhanced Content Management Store with Images and SEO
+// Enhanced Content Management Store
 export interface SEOData {
   title: string
   description: string
@@ -279,13 +281,13 @@ export interface PageContent {
   images: ImageAsset[]
 }
 
-// Complete initial pages data with ALL original frontend content
+// Initial content data with all components
 const initialPages: PageContent[] = [
   {
     id: "home",
     name: "Home Page",
     path: "/",
-    sections: 7,
+    sections: 8,
     lastModified: "2024-05-15",
     category: "main",
     seo: {
@@ -295,9 +297,7 @@ const initialPages: PageContent[] = [
       keywords: "roofing houston, roof repair, roof replacement, storm damage",
       ogImage: "/placeholder.svg?height=630&width=1200",
     },
-    images: [
-      { id: "hero-bg", url: "/placeholder.svg?height=600&width=1200", alt: "Professional roofing team at work" },
-    ],
+    images: [],
     components: [
       {
         id: "home-hero",
@@ -307,9 +307,27 @@ const initialPages: PageContent[] = [
         settings: {
           title: "Houston's Most Trusted Roofing Pros",
           subtitle: "Request a fast, free quote in under 60 seconds.",
-          ctaText: "Get Free Estimate",
-          features: ["Licensed & Insured", "4.9⭐ on Google", "Trusted by 3,000+ Homeowners"],
-          backgroundImage: "/placeholder.svg?height=600&width=1200",
+          primaryButton: "Get Free Estimate",
+          secondaryButton: "Learn More",
+          trustIndicators: ["Licensed & Insured", "4.9 ⭐ on Google", "Trusted by 3,000+ Homeowners"],
+          formTitle: "Get Your Free Estimate",
+          formSubtitle: "Takes less than 60 seconds",
+          formFeatures: ["No obligation quote", "Fast response time", "Professional assessment", "Transparent pricing"],
+          formButtonText: "Start Your Free Estimate",
+        },
+      },
+      {
+        id: "home-trust-badges",
+        name: "Trust Badges",
+        type: "trust-badges",
+        isActive: true,
+        settings: {
+          badges: [
+            { icon: "shield", text: "BBB A+ Rating", color: "green" },
+            { icon: "star", text: "4.9 (300+ Reviews)", color: "orange" },
+            { icon: "award", text: "GAF Certified Installer", color: "green" },
+            { icon: "home", text: "Local Houston-Owned", color: "orange" },
+          ],
         },
       },
       {
@@ -319,42 +337,42 @@ const initialPages: PageContent[] = [
         isActive: true,
         settings: {
           title: "Our Roofing Services",
-          subtitle: "Comprehensive solutions for all your roofing needs",
+          subtitle: "We provide comprehensive roofing solutions for homeowners in Houston and surrounding areas.",
           services: [
             {
+              icon: "home",
               title: "Roof Replacement",
               description: "Complete roof replacement with premium materials and expert installation.",
-              icon: "home",
               link: "/services/roof-replacement",
             },
             {
+              icon: "wrench",
               title: "Roof Repair",
               description: "Fast, reliable repairs for leaks, damaged shingles, and other roofing issues.",
-              icon: "wrench",
               link: "/services/roof-repair",
             },
             {
+              icon: "cloud-lightning",
               title: "Storm Damage Restoration",
               description: "Comprehensive restoration services for roofs damaged by storms and severe weather.",
-              icon: "cloud",
               link: "/services/storm-damage",
             },
             {
+              icon: "search",
               title: "Free Inspections",
               description: "Thorough roof inspections to identify potential issues before they become major problems.",
-              icon: "search",
               link: "/services/inspections",
             },
             {
+              icon: "droplets",
               title: "Gutter Services",
               description: "Installation, repair, and maintenance of gutters and downspouts to protect your home.",
-              icon: "droplets",
               link: "/services/gutters",
             },
             {
+              icon: "file-text",
               title: "Insurance Claim Help",
               description: "Expert assistance navigating the insurance claim process for roof damage.",
-              icon: "file-text",
               link: "/services/insurance",
             },
           ],
@@ -366,57 +384,93 @@ const initialPages: PageContent[] = [
         type: "why-choose",
         isActive: true,
         settings: {
-          title: "Why Choose American Roofing?",
-          subtitle: "We're committed to excellence in every project, from small repairs to complete roof replacements.",
+          title: "Why Choose Us",
+          subtitle:
+            "American Roofing is committed to providing exceptional service and quality craftsmanship on every project.",
           features: [
             {
-              title: "Quality Guarantee",
-              description: "We stand behind our work with comprehensive warranties and use only premium materials.",
-              icon: "shield",
+              icon: "zap",
+              title: "Fast Quotes",
+              description: "Get a detailed quote for your roofing project in as little as 60 seconds.",
+              color: "orange",
             },
             {
-              title: "Expert Team",
-              description: "Our certified professionals have years of experience and ongoing training.",
               icon: "users",
+              title: "Local & Insured",
+              description: "We're Houston-based, fully licensed, and insured for your complete peace of mind.",
+              color: "green",
             },
             {
-              title: "Award Winning",
-              description: "Recognized for excellence with industry awards and customer satisfaction.",
-              icon: "award",
-            },
-            {
-              title: "Fast Response",
-              description: "Quick response times for estimates and emergency repairs when you need us most.",
-              icon: "clock",
+              icon: "headphones",
+              title: "Real Human Support",
+              description: "Speak directly with our roofing experts – no automated systems or offshore support.",
+              color: "orange",
             },
           ],
         },
       },
       {
-        id: "home-social-proof",
-        name: "Enhanced Social Proof",
-        type: "social-proof",
+        id: "home-testimonials",
+        name: "Customer Testimonials",
+        type: "testimonials",
         isActive: true,
         settings: {
           title: "What Our Customers Say",
-          rating: "4.9",
-          reviewCount: "250+",
-          testimonials: [
+          subtitle:
+            "Join over 3,000 satisfied homeowners who trust American Roofing for quality, reliability, and exceptional service.",
+          overallRating: "4.9",
+          reviewCount: "300+",
+          platforms: [
+            { name: "Google", rating: "4.8" },
+            { name: "Facebook", rating: "4.9" },
+            { name: "BBB", rating: "4.10" },
+            { name: "HomeAdvisor", rating: "4.11" },
+          ],
+          reviews: [
             {
-              name: "Sarah Johnson",
-              text: "American Roofing did an amazing job on our roof replacement. The team was professional, efficient, and the quality of work exceeded our expectations. Highly recommend!",
+              name: "Lisa M.",
+              location: "Sugar Land, TX",
+              platform: "Google",
               rating: 5,
+              text: "I can't say enough good things about American Roofing. Their customer service is outstanding, and the quality of their work is top-notch. My new roof looks beautiful and was completed on time and within budget.",
             },
             {
-              name: "Mike Rodriguez",
-              text: "After the storm damaged our roof, American Roofing helped us through the entire insurance process and restored our roof quickly. Excellent service from start to finish.",
+              name: "David H.",
+              location: "Cypress, TX",
+              platform: "BBB",
               rating: 5,
+              text: "American Roofing provided excellent service from the initial consultation to the final inspection. The crew was professional, courteous, and cleaned up thoroughly after completing the job.",
             },
             {
-              name: "Jennifer Davis",
-              text: "We had a persistent leak that other companies couldn't fix. American Roofing found the problem immediately and solved it permanently. Great work!",
+              name: "Amanda R.",
+              location: "Spring, TX",
+              platform: "Google",
               rating: 5,
+              text: "We had storm damage and American Roofing helped us navigate the insurance process seamlessly. They were patient, knowledgeable, and delivered exceptional quality work.",
             },
+          ],
+        },
+      },
+      {
+        id: "home-trust-section",
+        name: "Trust & Certifications",
+        type: "trust-section",
+        isActive: true,
+        settings: {
+          title: "Trusted by Homeowners & Industry Leaders",
+          certifications: [
+            { name: "BBB A+ Rating", icon: "shield" },
+            { name: "GAF Certified", icon: "award" },
+            { name: "Owens Corning Preferred", icon: "star" },
+            { name: "CertainTeed SELECT ShingleMaster", icon: "certificate" },
+            { name: "HomeAdvisor Top Rated", icon: "trophy" },
+            { name: "Angi Super Service Award", icon: "medal" },
+          ],
+          stats: [
+            { number: "3,000+", label: "Happy Customers" },
+            { number: "15+", label: "Years Experience" },
+            { number: "100%", label: "Satisfaction Guarantee" },
+            { number: "5,000+", label: "Projects Completed" },
           ],
         },
       },
@@ -426,33 +480,32 @@ const initialPages: PageContent[] = [
         type: "gallery",
         isActive: true,
         settings: {
-          title: "Recent Projects",
-          subtitle: "See our quality work in action",
-          categories: ["All", "Roof Replacement", "Roof Repair", "Storm Damage", "Commercial"],
-        },
-      },
-      {
-        id: "home-cta",
-        name: "Call to Action",
-        type: "cta",
-        isActive: true,
-        settings: {
-          title: "Ready to Get Started?",
+          title: "Before & After Gallery",
           subtitle:
-            "Contact us today for your free estimate and see why thousands of Houston homeowners trust American Roofing.",
-          primaryCta: "Get Free Estimate",
-          secondaryCta: "Call (713) 555-1234",
-        },
-      },
-      {
-        id: "home-floating-cta",
-        name: "Floating CTA",
-        type: "floating-cta",
-        isActive: true,
-        settings: {
-          phone: "(713) 555-1234",
-          ctaText: "Get Free Quote",
-          showAfterScroll: 500,
+            "See the transformation our roofing services can make with these real projects from Houston homeowners.",
+          projects: [
+            {
+              id: 1,
+              title: "Complete Roof Replacement",
+              beforeImage: "/placeholder.svg?height=300&width=400",
+              afterImage: "/placeholder.svg?height=300&width=400",
+              description: "Storm-damaged roof transformed with premium architectural shingles",
+            },
+            {
+              id: 2,
+              title: "Hail Damage Restoration",
+              beforeImage: "/placeholder.svg?height=300&width=400",
+              afterImage: "/placeholder.svg?height=300&width=400",
+              description: "Insurance claim restoration with upgraded materials",
+            },
+            {
+              id: 3,
+              title: "Leak Repair & Restoration",
+              beforeImage: "/placeholder.svg?height=300&width=400",
+              afterImage: "/placeholder.svg?height=300&width=400",
+              description: "Emergency leak repair with full section replacement",
+            },
+          ],
         },
       },
     ],
@@ -471,7 +524,7 @@ const initialPages: PageContent[] = [
       keywords: "about american roofing, houston roofers, roofing company history",
       ogImage: "/placeholder.svg?height=630&width=1200",
     },
-    images: [{ id: "about-hero", url: "/placeholder.svg?height=400&width=600", alt: "American Roofing team" }],
+    images: [],
     components: [
       {
         id: "about-hero",
@@ -482,7 +535,8 @@ const initialPages: PageContent[] = [
           title: "About American Roofing",
           subtitle:
             "Houston's most trusted roofing professionals with over 15 years of experience serving homeowners throughout the greater Houston area.",
-          backgroundImage: "/placeholder.svg?height=600&width=1200",
+          primaryButton: "Get Free Estimate",
+          secondaryButton: "Contact Us",
         },
       },
       {
@@ -509,51 +563,6 @@ const initialPages: PageContent[] = [
             "15+ Years Experience",
             "Emergency Services Available",
           ],
-        },
-      },
-      {
-        id: "about-why-choose",
-        name: "Why Choose Us Cards",
-        type: "why-choose",
-        isActive: true,
-        settings: {
-          title: "Why Choose American Roofing?",
-          subtitle: "We're committed to excellence in every project, from small repairs to complete roof replacements.",
-          features: [
-            {
-              title: "Quality Guarantee",
-              description: "We stand behind our work with comprehensive warranties and use only premium materials.",
-              icon: "shield",
-            },
-            {
-              title: "Expert Team",
-              description: "Our certified professionals have years of experience and ongoing training.",
-              icon: "users",
-            },
-            {
-              title: "Award Winning",
-              description: "Recognized for excellence with industry awards and customer satisfaction.",
-              icon: "award",
-            },
-            {
-              title: "Fast Response",
-              description: "Quick response times for estimates and emergency repairs when you need us most.",
-              icon: "clock",
-            },
-          ],
-        },
-      },
-      {
-        id: "about-cta",
-        name: "Ready to Get Started CTA",
-        type: "cta",
-        isActive: true,
-        settings: {
-          title: "Ready to Get Started?",
-          subtitle:
-            "Contact us today for your free estimate and see why thousands of Houston homeowners trust American Roofing.",
-          primaryCta: "Get Free Estimate",
-          secondaryCta: "Call (713) 555-1234",
         },
       },
     ],
@@ -583,7 +592,8 @@ const initialPages: PageContent[] = [
           title: "Contact Us",
           subtitle:
             "Get in touch with Houston's most trusted roofing professionals. We're here to help with all your roofing needs.",
-          backgroundImage: "/placeholder.svg?height=600&width=1200",
+          primaryButton: "Get Free Estimate",
+          secondaryButton: "Call Now",
         },
       },
       {
@@ -605,215 +615,6 @@ const initialPages: PageContent[] = [
     ],
   },
   {
-    id: "services",
-    name: "Services Overview",
-    path: "/services",
-    sections: 3,
-    lastModified: "2024-05-12",
-    category: "main",
-    seo: {
-      title: "Roofing Services Houston | American Roofing",
-      description:
-        "Comprehensive roofing services in Houston including roof replacement, repair, storm damage restoration, and more. Free estimates available.",
-      keywords: "roofing services houston, roof replacement, roof repair, storm damage",
-      ogImage: "/placeholder.svg?height=630&width=1200",
-    },
-    images: [],
-    components: [
-      {
-        id: "services-hero",
-        name: "Services Hero",
-        type: "hero",
-        isActive: true,
-        settings: {
-          title: "Our Roofing Services",
-          subtitle:
-            "American Roofing provides comprehensive roofing solutions for homeowners throughout Houston and surrounding areas. From complete roof replacements to minor repairs, our team of experienced professionals is here to help.",
-          backgroundImage: "/placeholder.svg?height=600&width=1200",
-        },
-      },
-      {
-        id: "services-grid",
-        name: "Services Grid",
-        type: "services",
-        isActive: true,
-        settings: {
-          title: "Complete Roofing Solutions",
-          subtitle: "Professional services for all your roofing needs",
-          services: [
-            {
-              title: "Roof Replacement",
-              description: "Complete roof replacement with premium materials and expert installation.",
-              icon: "home",
-              link: "/services/roof-replacement",
-            },
-            {
-              title: "Roof Repair",
-              description: "Fast, reliable repairs for leaks, damaged shingles, and other roofing issues.",
-              icon: "wrench",
-              link: "/services/roof-repair",
-            },
-            {
-              title: "Storm Damage Restoration",
-              description: "Comprehensive restoration services for roofs damaged by storms and severe weather.",
-              icon: "cloud",
-              link: "/services/storm-damage",
-            },
-            {
-              title: "Free Inspections",
-              description: "Thorough roof inspections to identify potential issues before they become major problems.",
-              icon: "search",
-              link: "/services/inspections",
-            },
-            {
-              title: "Gutter Services",
-              description: "Installation, repair, and maintenance of gutters and downspouts to protect your home.",
-              icon: "droplets",
-              link: "/services/gutters",
-            },
-            {
-              title: "Insurance Claim Help",
-              description: "Expert assistance navigating the insurance claim process for roof damage.",
-              icon: "file-text",
-              link: "/services/insurance",
-            },
-          ],
-        },
-      },
-      {
-        id: "services-process",
-        name: "Our Process",
-        type: "service-process",
-        isActive: true,
-        settings: {
-          title: "Our Process",
-          subtitle:
-            "We follow a streamlined, customer-focused process to ensure your roofing project is completed efficiently and to your complete satisfaction.",
-          steps: [
-            {
-              number: 1,
-              title: "Consultation",
-              description: "We'll discuss your needs, assess your current roof, and provide expert recommendations.",
-            },
-            {
-              number: 2,
-              title: "Proposal",
-              description: "You'll receive a detailed, transparent proposal outlining the scope of work and costs.",
-            },
-            {
-              number: 3,
-              title: "Installation",
-              description:
-                "Our skilled team will complete your project with precision, quality, and attention to detail.",
-            },
-            {
-              number: 4,
-              title: "Satisfaction",
-              description: "We'll ensure you're completely satisfied with our work and provide warranty information.",
-            },
-          ],
-        },
-      },
-      {
-        id: "services-cta",
-        name: "Services CTA",
-        type: "cta",
-        isActive: true,
-        settings: {
-          title: "Ready to Get Started?",
-          subtitle:
-            "Contact American Roofing today to schedule a free consultation and estimate for your roofing project. Our team is ready to provide the quality service and expertise you deserve.",
-          primaryCta: "Get a Free Estimate",
-          secondaryCta: "Contact Us",
-        },
-      },
-    ],
-  },
-  {
-    id: "gallery",
-    name: "Project Gallery",
-    path: "/gallery",
-    sections: 2,
-    lastModified: "2024-05-10",
-    category: "main",
-    seo: {
-      title: "Roofing Project Gallery | American Roofing Houston",
-      description:
-        "View our completed roofing projects in Houston. See examples of roof replacements, repairs, and storm damage restorations.",
-      keywords: "roofing gallery houston, roof replacement examples, before after roofing",
-      ogImage: "/placeholder.svg?height=630&width=1200",
-    },
-    images: [
-      { id: "gallery-1", url: "/placeholder.svg?height=300&width=400", alt: "Roof replacement project 1" },
-      { id: "gallery-2", url: "/placeholder.svg?height=300&width=400", alt: "Roof replacement project 2" },
-      { id: "gallery-3", url: "/placeholder.svg?height=300&width=400", alt: "Storm damage repair" },
-      { id: "gallery-4", url: "/placeholder.svg?height=300&width=400", alt: "Commercial roofing project" },
-      { id: "gallery-5", url: "/placeholder.svg?height=300&width=400", alt: "Residential roof repair" },
-      { id: "gallery-6", url: "/placeholder.svg?height=300&width=400", alt: "Gutter installation" },
-    ],
-    components: [
-      {
-        id: "gallery-hero",
-        name: "Gallery Hero",
-        type: "hero",
-        isActive: true,
-        settings: {
-          title: "Project Gallery",
-          subtitle:
-            "Browse our portfolio of completed roofing projects throughout the Houston area. See the quality of our work and the transformations we've achieved for our satisfied customers.",
-          backgroundImage: "/placeholder.svg?height=600&width=1200",
-        },
-      },
-      {
-        id: "gallery-grid",
-        name: "Project Gallery Grid",
-        type: "gallery",
-        isActive: true,
-        settings: {
-          title: "Recent Projects",
-          subtitle: "See our quality work in action",
-          categories: ["All", "Roof Replacement", "Roof Repair", "Storm Damage", "Commercial"],
-          projects: [
-            {
-              id: 1,
-              title: "Complete Roof Replacement",
-              location: "Memorial, Houston",
-              category: "replacement",
-              description: "Full replacement of an aging shingle roof with premium architectural shingles.",
-              testimonial:
-                "The transformation is incredible! Our home looks brand new and we've already received compliments from neighbors.",
-              customerName: "The Johnson Family",
-              date: "January 2024",
-            },
-            {
-              id: 2,
-              title: "Storm Damage Restoration",
-              location: "Katy, TX",
-              category: "storm",
-              description: "Comprehensive repair and partial replacement after severe hail damage.",
-              testimonial:
-                "American Roofing was there for us when we needed them most. They handled our insurance claim and restored our roof quickly.",
-              customerName: "David & Susan Miller",
-              date: "February 2024",
-            },
-            {
-              id: 3,
-              title: "New Construction Roofing",
-              location: "The Woodlands, TX",
-              category: "replacement",
-              description: "Installation of a modern metal roof system on a newly constructed luxury home.",
-              testimonial:
-                "The metal roof not only looks stunning but has already helped with our energy bills during the hot Houston summer.",
-              customerName: "The Williams Family",
-              date: "March 2024",
-            },
-          ],
-        },
-      },
-    ],
-  },
-  // Service pages with complete original content
-  {
     id: "roof-replacement",
     name: "Roof Replacement Service",
     path: "/services/roof-replacement",
@@ -827,7 +628,7 @@ const initialPages: PageContent[] = [
       keywords: "roof replacement houston, new roof installation, roofing materials",
       ogImage: "/placeholder.svg?height=630&width=1200",
     },
-    images: [{ id: "replacement-hero", url: "/placeholder.svg?height=400&width=800", alt: "Roof Replacement" }],
+    images: [],
     components: [
       {
         id: "replacement-hero",
@@ -838,7 +639,8 @@ const initialPages: PageContent[] = [
           title: "Roof Replacement",
           subtitle:
             "Complete roof replacement services with premium materials and expert installation for Houston homeowners.",
-          backgroundImage: "/placeholder.svg?height=600&width=1200",
+          primaryButton: "Get Free Estimate",
+          secondaryButton: "Call Now",
         },
       },
       {
@@ -852,6 +654,7 @@ const initialPages: PageContent[] = [
             "American Roofing provides comprehensive roof replacement services for homeowners throughout the Houston area. Whether your roof has sustained storm damage, reached the end of its lifespan, or you simply want to upgrade to a more modern and energy-efficient roofing system, our team of experienced professionals is here to help.",
           content:
             "We understand that replacing your roof is a significant investment, which is why we're committed to providing honest assessments, quality materials, expert installation, and transparent pricing throughout the entire process.",
+          image: "/placeholder.svg?height=400&width=800",
         },
       },
       {
@@ -892,6 +695,7 @@ const initialPages: PageContent[] = [
         isActive: true,
         settings: {
           title: "Our Roof Replacement Process",
+          subtitle: "A streamlined approach to your roof replacement project",
           steps: [
             {
               number: 1,
@@ -972,7 +776,7 @@ const initialPages: PageContent[] = [
       keywords: "roof repair houston, roof leak repair, emergency roofing",
       ogImage: "/placeholder.svg?height=630&width=1200",
     },
-    images: [{ id: "repair-hero", url: "/placeholder.svg?height=400&width=800", alt: "Roof Repair" }],
+    images: [],
     components: [
       {
         id: "repair-hero",
@@ -982,7 +786,8 @@ const initialPages: PageContent[] = [
         settings: {
           title: "Roof Repair",
           subtitle: "Fast, reliable repairs for leaks, damaged shingles, and other roofing issues throughout Houston.",
-          backgroundImage: "/placeholder.svg?height=600&width=1200",
+          primaryButton: "Get Free Estimate",
+          secondaryButton: "Emergency Service",
         },
       },
       {
@@ -996,6 +801,7 @@ const initialPages: PageContent[] = [
             "American Roofing provides comprehensive roof repair services for homeowners throughout the Houston area. From minor leaks to storm damage, our experienced team can quickly diagnose and repair any roofing issue to protect your home and restore your peace of mind.",
           content:
             "We understand that roof problems can be stressful and disruptive. That's why we prioritize prompt, professional service and transparent communication throughout the repair process.",
+          image: "/placeholder.svg?height=400&width=800",
         },
       },
       {
@@ -1034,6 +840,7 @@ const initialPages: PageContent[] = [
         isActive: true,
         settings: {
           title: "Our Roof Repair Process",
+          subtitle: "Professional repairs you can trust",
           steps: [
             {
               number: 1,
@@ -1114,7 +921,7 @@ const initialPages: PageContent[] = [
       keywords: "storm damage repair houston, hail damage, wind damage, insurance claims",
       ogImage: "/placeholder.svg?height=630&width=1200",
     },
-    images: [{ id: "storm-hero", url: "/placeholder.svg?height=400&width=800", alt: "Storm Damage Restoration" }],
+    images: [],
     components: [
       {
         id: "storm-hero",
@@ -1124,7 +931,8 @@ const initialPages: PageContent[] = [
         settings: {
           title: "Storm Damage Restoration",
           subtitle: "Comprehensive storm damage assessment, repair, and restoration services for Houston homeowners.",
-          backgroundImage: "/placeholder.svg?height=600&width=1200",
+          primaryButton: "Emergency Service",
+          secondaryButton: "Free Inspection",
         },
       },
       {
@@ -1138,6 +946,7 @@ const initialPages: PageContent[] = [
             "Houston's severe weather—from hurricanes and tropical storms to hail and high winds—can cause significant damage to your roof. American Roofing provides comprehensive storm damage restoration services to quickly assess, repair, and restore your roof after weather-related damage.",
           content:
             "Our experienced team understands the urgency of storm damage repairs and works efficiently to protect your home from further damage while delivering lasting, quality restorations.",
+          image: "/placeholder.svg?height=400&width=800",
         },
       },
       {
@@ -1178,6 +987,7 @@ const initialPages: PageContent[] = [
         isActive: true,
         settings: {
           title: "Our Storm Damage Restoration Process",
+          subtitle: "Emergency response and complete restoration",
           steps: [
             {
               number: 1,
@@ -1276,6 +1086,9 @@ interface ContentState {
   selectedPage: PageContent | null
   selectedComponent: ComponentContent | null
   categories: Record<CategoryType, string[]>
+  isLoading?: boolean
+  error?: string | null
+  initializeStore?: () => void
   selectPage: (pageId: string) => void
   selectComponent: (componentId: string) => void
   updateComponentSettings: (params: { componentId: string; settings: Record<string, any> }) => void
@@ -1286,15 +1099,39 @@ interface ContentState {
   removeImage: (params: { pageId: string; imageId: string }) => void
   getPageContent: (pageId: string) => PageContent | null
   getComponentContent: (pageId: string, componentId: string) => ComponentContent | null
+  addComponent: (params: { pageId: string; component: Omit<ComponentContent, "id"> }) => void
+  deleteComponent: (params: { pageId: string; componentId: string }) => void
+  reorderComponents: (params: { pageId: string; componentIds: string[] }) => void
+  duplicateComponent: (params: { pageId: string; componentId: string }) => void
 }
 
 export const useContentStore = create<ContentState>()(
   persist(
     (set, get) => ({
-      pages: initialPages,
+      pages: [],
       selectedPage: null,
       selectedComponent: null,
-      categories: createCategories(initialPages),
+      categories: { main: [], service: [], utility: [] },
+      isLoading: true,
+      error: null,
+
+      // Initialize with minimal data first
+      initializeStore: () => {
+        try {
+          set({
+            pages: initialPages,
+            categories: createCategories(initialPages),
+            isLoading: false,
+            error: null,
+          })
+        } catch (error) {
+          console.error("Failed to initialize store:", error)
+          set({
+            isLoading: false,
+            error: "Failed to load content data",
+          })
+        }
+      },
 
       selectPage: (pageId: string) => {
         if (pageId === "") {
@@ -1320,97 +1157,113 @@ export const useContentStore = create<ContentState>()(
       },
 
       updateComponentSettings: ({ componentId, settings }: { componentId: string; settings: Record<string, any> }) => {
-        const { pages, selectedPage } = get()
-        if (!selectedPage) return
+        try {
+          const { pages, selectedPage } = get()
+          if (!selectedPage) return
 
-        const updatedPages = pages.map((page) => {
-          if (page.id === selectedPage.id) {
-            return {
-              ...page,
-              components: page.components.map((component) => {
-                if (component.id === componentId) {
-                  return {
-                    ...component,
-                    settings,
+          const updatedPages = pages.map((page) => {
+            if (page.id === selectedPage.id) {
+              return {
+                ...page,
+                components: page.components.map((component) => {
+                  if (component.id === componentId) {
+                    return {
+                      ...component,
+                      settings,
+                    }
                   }
-                }
-                return component
-              }),
-              lastModified: new Date().toISOString().split("T")[0],
+                  return component
+                }),
+                lastModified: new Date().toISOString().split("T")[0],
+              }
             }
-          }
-          return page
-        })
+            return page
+          })
 
-        const updatedSelectedPage = updatedPages.find((p) => p.id === selectedPage.id) || null
-        const updatedSelectedComponent = updatedSelectedPage?.components.find((c) => c.id === componentId) || null
+          const updatedSelectedPage = updatedPages.find((p) => p.id === selectedPage.id) || null
+          const updatedSelectedComponent = updatedSelectedPage?.components.find((c) => c.id === componentId) || null
 
-        set({
-          pages: updatedPages,
-          selectedPage: updatedSelectedPage,
-          selectedComponent: updatedSelectedComponent,
-        })
+          set({
+            pages: updatedPages,
+            selectedPage: updatedSelectedPage,
+            selectedComponent: updatedSelectedComponent,
+          })
+        } catch (error) {
+          console.error("Failed to update component settings:", error)
+        }
       },
 
       toggleComponent: (componentId: string) => {
-        const { pages, selectedPage } = get()
-        if (!selectedPage) return
+        try {
+          const { pages, selectedPage } = get()
+          if (!selectedPage) return
 
-        const updatedPages = pages.map((page) => {
-          if (page.id === selectedPage.id) {
-            return {
-              ...page,
-              components: page.components.map((component) => {
-                if (component.id === componentId) {
-                  return {
-                    ...component,
-                    isActive: !component.isActive,
+          const updatedPages = pages.map((page) => {
+            if (page.id === selectedPage.id) {
+              return {
+                ...page,
+                components: page.components.map((component) => {
+                  if (component.id === componentId) {
+                    return {
+                      ...component,
+                      isActive: !component.isActive,
+                    }
                   }
-                }
-                return component
-              }),
-              lastModified: new Date().toISOString().split("T")[0],
+                  return component
+                }),
+                lastModified: new Date().toISOString().split("T")[0],
+              }
             }
-          }
-          return page
-        })
+            return page
+          })
 
-        const updatedSelectedPage = updatedPages.find((p) => p.id === selectedPage.id) || null
+          const updatedSelectedPage = updatedPages.find((p) => p.id === selectedPage.id) || null
 
-        set({
-          pages: updatedPages,
-          selectedPage: updatedSelectedPage,
-        })
+          set({
+            pages: updatedPages,
+            selectedPage: updatedSelectedPage,
+          })
+        } catch (error) {
+          console.error("Failed to toggle component:", error)
+        }
       },
 
       updatePageSEO: ({ pageId, seo }: { pageId: string; seo: SEOData }) => {
-        const updatedPages = get().pages.map((page) => {
-          if (page.id === pageId) {
-            return {
-              ...page,
-              seo,
-              lastModified: new Date().toISOString().split("T")[0],
+        try {
+          const updatedPages = get().pages.map((page) => {
+            if (page.id === pageId) {
+              return {
+                ...page,
+                seo,
+                lastModified: new Date().toISOString().split("T")[0],
+              }
             }
-          }
-          return page
-        })
+            return page
+          })
 
-        set({ pages: updatedPages })
+          set({ pages: updatedPages })
+        } catch (error) {
+          console.error("Failed to update page SEO:", error)
+        }
       },
 
       addImage: ({ pageId, image }: { pageId: string; image: ImageAsset }) => {
-        const updatedPages = get().pages.map((page) => {
-          if (page.id === pageId) {
-            return {
-              ...page,
-              images: [...page.images, image],
-              lastModified: new Date().toISOString().split("T")[0],
+        try {
+          const updatedPages = get().pages.map((page) => {
+            if (page.id === pageId) {
+              return {
+                ...page,
+                images: [...page.images, image],
+                lastModified: new Date().toISOString().split("T")[0],
+              }
             }
-          }
-          return page
-        })
+            return page
+          })
 
-        set({ pages: updatedPages })
+          set({ pages: updatedPages })
+        } catch (error) {
+          console.error("Failed to add image:", error)
+        }
       },
 
       updateImage: ({
@@ -1418,47 +1271,177 @@ export const useContentStore = create<ContentState>()(
         imageId,
         updates,
       }: { pageId: string; imageId: string; updates: Partial<ImageAsset> }) => {
-        const updatedPages = get().pages.map((page) => {
-          if (page.id === pageId) {
-            return {
-              ...page,
-              images: page.images.map((img) => (img.id === imageId ? { ...img, ...updates } : img)),
-              lastModified: new Date().toISOString().split("T")[0],
+        try {
+          const updatedPages = get().pages.map((page) => {
+            if (page.id === pageId) {
+              return {
+                ...page,
+                images: page.images.map((img) => (img.id === imageId ? { ...img, ...updates } : img)),
+                lastModified: new Date().toISOString().split("T")[0],
+              }
             }
-          }
-          return page
-        })
+            return page
+          })
 
-        set({ pages: updatedPages })
+          set({ pages: updatedPages })
+        } catch (error) {
+          console.error("Failed to update image:", error)
+        }
       },
 
       removeImage: ({ pageId, imageId }: { pageId: string; imageId: string }) => {
-        const updatedPages = get().pages.map((page) => {
-          if (page.id === pageId) {
-            return {
-              ...page,
-              images: page.images.filter((img) => img.id !== imageId),
-              lastModified: new Date().toISOString().split("T")[0],
+        try {
+          const updatedPages = get().pages.map((page) => {
+            if (page.id === pageId) {
+              return {
+                ...page,
+                images: page.images.filter((img) => img.id !== imageId),
+                lastModified: new Date().toISOString().split("T")[0],
+              }
             }
-          }
-          return page
-        })
+            return page
+          })
 
-        set({ pages: updatedPages })
+          set({ pages: updatedPages })
+        } catch (error) {
+          console.error("Failed to remove image:", error)
+        }
       },
 
       getPageContent: (pageId: string) => {
-        return get().pages.find((p) => p.id === pageId) || null
+        try {
+          return get().pages.find((p) => p.id === pageId) || null
+        } catch (error) {
+          console.error("Failed to get page content:", error)
+          return null
+        }
       },
 
       getComponentContent: (pageId: string, componentId: string) => {
-        const page = get().pages.find((p) => p.id === pageId)
-        if (!page) return null
-        return page.components.find((c) => c.id === componentId) || null
+        try {
+          const page = get().pages.find((p) => p.id === pageId)
+          if (!page) return null
+          return page.components.find((c) => c.id === componentId) || null
+        } catch (error) {
+          console.error("Failed to get component content:", error)
+          return null
+        }
+      },
+
+      addComponent: ({ pageId, component }: { pageId: string; component: Omit<ComponentContent, "id"> }) => {
+        try {
+          const newComponent: ComponentContent = {
+            ...component,
+            id: `${pageId}-${component.type}-${Date.now()}`,
+          }
+
+          const updatedPages = get().pages.map((page) => {
+            if (page.id === pageId) {
+              return {
+                ...page,
+                components: [...page.components, newComponent],
+                lastModified: new Date().toISOString().split("T")[0],
+              }
+            }
+            return page
+          })
+
+          set({ pages: updatedPages })
+        } catch (error) {
+          console.error("Failed to add component:", error)
+        }
+      },
+
+      deleteComponent: ({ pageId, componentId }: { pageId: string; componentId: string }) => {
+        try {
+          const updatedPages = get().pages.map((page) => {
+            if (page.id === pageId) {
+              return {
+                ...page,
+                components: page.components.filter((c) => c.id !== componentId),
+                lastModified: new Date().toISOString().split("T")[0],
+              }
+            }
+            return page
+          })
+
+          set({ pages: updatedPages })
+        } catch (error) {
+          console.error("Failed to delete component:", error)
+        }
+      },
+
+      reorderComponents: ({ pageId, componentIds }: { pageId: string; componentIds: string[] }) => {
+        try {
+          const updatedPages = get().pages.map((page) => {
+            if (page.id === pageId) {
+              const reorderedComponents = componentIds
+                .map((id) => page.components.find((c) => c.id === id))
+                .filter(Boolean) as ComponentContent[]
+
+              return {
+                ...page,
+                components: reorderedComponents,
+                lastModified: new Date().toISOString().split("T")[0],
+              }
+            }
+            return page
+          })
+
+          set({ pages: updatedPages })
+        } catch (error) {
+          console.error("Failed to reorder components:", error)
+        }
+      },
+
+      duplicateComponent: ({ pageId, componentId }: { pageId: string; componentId: string }) => {
+        try {
+          const page = get().pages.find((p) => p.id === pageId)
+          if (!page) return
+
+          const componentToDuplicate = page.components.find((c) => c.id === componentId)
+          if (!componentToDuplicate) return
+
+          const duplicatedComponent: ComponentContent = {
+            ...componentToDuplicate,
+            id: `${pageId}-${componentToDuplicate.type}-${Date.now()}`,
+            name: `${componentToDuplicate.name} (Copy)`,
+          }
+
+          const updatedPages = get().pages.map((p) => {
+            if (p.id === pageId) {
+              const componentIndex = p.components.findIndex((c) => c.id === componentId)
+              const newComponents = [...p.components]
+              newComponents.splice(componentIndex + 1, 0, duplicatedComponent)
+
+              return {
+                ...p,
+                components: newComponents,
+                lastModified: new Date().toISOString().split("T")[0],
+              }
+            }
+            return p
+          })
+
+          set({ pages: updatedPages })
+        } catch (error) {
+          console.error("Failed to duplicate component:", error)
+        }
       },
     }),
     {
       name: "content-storage",
+      version: 1,
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          // Initialize the store after rehydration
+          if (state.pages.length === 0) {
+            state.initializeStore?.()
+          } else {
+            state.isLoading = false
+          }
+        }
+      },
     },
   ),
 )

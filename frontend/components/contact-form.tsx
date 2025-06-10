@@ -1,15 +1,11 @@
 "use client"
 
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react"
+import { useState, type ChangeEvent, type FormEvent } from "react"
 import { Phone, Mail, MapPin, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import { useContentStore } from "@/lib/store"
-import Hero from "@/components/hero"
-import ContactForm from "@/components/contact-form"
-import { Skeleton } from "@/components/ui/skeleton"
 
 interface ContactFormData {
   firstName: string
@@ -20,75 +16,65 @@ interface ContactFormData {
   message: string
 }
 
-export default function ContactPage() {
-  const [isClient, setIsClient] = useState(false)
-  const { getPageContent } = useContentStore()
-
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  if (!isClient) {
-    return <PageSkeleton />
-  }
-
-  const pageContent = getPageContent("contact")
-
-  if (!pageContent) {
-    return <PageSkeleton />
-  }
-
-  const getComponentContent = (componentId: string) => {
-    const component = pageContent.components.find((c) => c.id === componentId)
-    return component?.isActive ? component.settings : null
-  }
-
-  return (
-    <main className="pt-20">
-      {getComponentContent("contact-hero") && <Hero content={getComponentContent("contact-hero")} />}
-
-      {getComponentContent("contact-form") && <ContactForm content={getComponentContent("contact-form")} />}
-    </main>
-  )
+interface ContactFormProps {
+  content?: any
 }
 
-function PageSkeleton() {
-  return (
-    <main className="pt-20">
-      <div className="relative w-full bg-gradient-to-br from-green-100 via-green-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <Skeleton className="h-16 w-full max-w-2xl" />
-              <Skeleton className="h-8 w-full max-w-xl" />
-              <div className="flex gap-4">
-                <Skeleton className="h-12 w-40" />
-                <Skeleton className="h-12 w-32" />
-              </div>
-            </div>
-            <Skeleton className="h-96 w-full max-w-md justify-self-end" />
-          </div>
-        </div>
-      </div>
-    </main>
-  )
-}
+export default function ContactForm({ content }: ContactFormProps) {
+  const [formData, setFormData] = useState<ContactFormData>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    service: "",
+    message: "",
+  })
 
-// Contact Form Component
-function ContactFormSection({
-  content,
-  formData,
-  handleChange,
-  handleSubmit,
-}: {
-  content: any
-  formData: ContactFormData
-  handleChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
-  handleSubmit: (e: FormEvent<HTMLFormElement>) => void
-}) {
-  const title = content?.title || "Get Your Free Estimate"
-  const subtitle = content?.subtitle || "Fill out the form below and we'll get back to you within 24 hours"
-  const contactInfo = content?.contactInfo || {}
+  const settings = content || {
+    title: "Get Your Free Estimate",
+    subtitle: "Fill out the form below and we'll get back to you within 24 hours",
+    contactInfo: {
+      phone: "(713) 555-1234",
+      email: "info@americanroofing.com",
+      address: "123 Main Street\nHouston, TX 77001",
+      hours: "Mon - Fri: 8:00 AM - 6:00 PM\nSat: 9:00 AM - 4:00 PM\nSun: Emergency calls only",
+    },
+  }
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    try {
+      const response = await fetch("http://localhost:8080/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to submit form")
+      }
+
+      // Reset form
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        service: "",
+        message: "",
+      })
+    } catch (error) {
+      console.error("Error submitting form:", error)
+    }
+  }
 
   return (
     <section className="py-16">
@@ -98,8 +84,8 @@ function ContactFormSection({
           <div>
             <Card className="bg-white shadow-lg">
               <CardContent className="p-8">
-                <h2 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">{title}</h2>
-                <p className="text-gray-600 mb-6">{subtitle}</p>
+                <h2 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">{settings.title}</h2>
+                <p className="text-gray-600 mb-6">{settings.subtitle}</p>
                 <form className="space-y-6" onSubmit={handleSubmit}>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
@@ -201,7 +187,7 @@ function ContactFormSection({
             </div>
 
             <div className="space-y-6">
-              {contactInfo.phone && (
+              {settings.contactInfo.phone && (
                 <Card className="bg-white shadow-md">
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
@@ -210,7 +196,7 @@ function ContactFormSection({
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-600">Phone</h3>
-                        <p className="text-gray-600">{contactInfo.phone}</p>
+                        <p className="text-gray-600">{settings.contactInfo.phone}</p>
                         <p className="text-sm text-gray-500">Call us for immediate assistance</p>
                       </div>
                     </div>
@@ -218,7 +204,7 @@ function ContactFormSection({
                 </Card>
               )}
 
-              {contactInfo.email && (
+              {settings.contactInfo.email && (
                 <Card className="bg-white shadow-md">
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
@@ -227,7 +213,7 @@ function ContactFormSection({
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-600">Email</h3>
-                        <p className="text-gray-600">{contactInfo.email}</p>
+                        <p className="text-gray-600">{settings.contactInfo.email}</p>
                         <p className="text-sm text-gray-500">Send us your questions</p>
                       </div>
                     </div>
@@ -235,7 +221,7 @@ function ContactFormSection({
                 </Card>
               )}
 
-              {contactInfo.address && (
+              {settings.contactInfo.address && (
                 <Card className="bg-white shadow-md">
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
@@ -244,7 +230,7 @@ function ContactFormSection({
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-600">Address</h3>
-                        <p className="text-gray-600 whitespace-pre-line">{contactInfo.address}</p>
+                        <p className="text-gray-600 whitespace-pre-line">{settings.contactInfo.address}</p>
                         <p className="text-sm text-gray-500">Visit our office</p>
                       </div>
                     </div>
@@ -252,7 +238,7 @@ function ContactFormSection({
                 </Card>
               )}
 
-              {contactInfo.hours && (
+              {settings.contactInfo.hours && (
                 <Card className="bg-white shadow-md">
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
@@ -261,7 +247,7 @@ function ContactFormSection({
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-600">Business Hours</h3>
-                        <p className="text-gray-600 whitespace-pre-line">{contactInfo.hours}</p>
+                        <p className="text-gray-600 whitespace-pre-line">{settings.contactInfo.hours}</p>
                       </div>
                     </div>
                   </CardContent>

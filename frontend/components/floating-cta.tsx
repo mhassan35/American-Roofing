@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Phone } from "lucide-react"
 import { useLeadFormStore } from "@/lib/store"
-import { useHydration } from "@/hooks/use-hydration"
 
 interface FloatingCTAProps {
   content?: {
@@ -15,7 +14,6 @@ interface FloatingCTAProps {
 }
 
 export default function FloatingCTA({ content }: FloatingCTAProps) {
-  const isHydrated = useHydration()
   const { openLeadForm } = useLeadFormStore()
   const [isVisible, setIsVisible] = useState(false)
 
@@ -24,17 +22,15 @@ export default function FloatingCTA({ content }: FloatingCTAProps) {
   const showAfterScroll = content?.showAfterScroll || 500
 
   useEffect(() => {
-    if (!isHydrated) return
-
     const handleScroll = () => {
       setIsVisible(window.scrollY > showAfterScroll)
     }
 
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [showAfterScroll, isHydrated])
+  }, [showAfterScroll])
 
-  if (!isHydrated || !isVisible) return null
+  if (!isVisible) return null
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">

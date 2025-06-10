@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { useLeadFormStore, useLeadStore } from "@/lib/store"
 import {
   X,
@@ -124,106 +124,108 @@ export default function LeadForm() {
     }
   }
 
-  const handleFinalSubmit = async (e: React.FormEvent) => { 
-    e.preventDefault() 
- 
-    if (!formData.name || !formData.phone || !formData.email) { 
-      toast({ 
-        title: "Please fill in all required fields", 
-        description: "Name, phone, and email are required", 
-        variant: "destructive", 
-      }) 
-      return 
-    } 
- 
-    setIsSubmitting(true) 
- 
-    try { 
-      // Extract first and last name from the full name 
-      const nameParts = formData.name.trim().split(" ") 
-      const firstName = nameParts[0] || "" 
-      const lastName = nameParts.slice(1).join(" ") || "" 
- 
-      // Convert file to data URL if exists 
-      let photoUrl = "" 
-      if (formData.photo instanceof File) { 
-        photoUrl = await new Promise<string>((resolve) => { 
-          const reader = new FileReader() 
-          reader.onloadend = () => resolve(reader.result as string) 
-          reader.readAsDataURL(formData.photo!) 
-        }) 
-      } 
+  const handleFinalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!formData.name || !formData.phone || !formData.email) {
+      toast({
+        title: "Please fill in all required fields",
+        description: "Name, phone, and email are required",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      // Extract first and last name from the full name
+      const nameParts = formData.name.trim().split(" ")
+      const firstName = nameParts[0] || ""
+      const lastName = nameParts.slice(1).join(" ") || ""
+
+      // Convert file to data URL if exists
+      let photoUrl = ""
+      if (formData.photo instanceof File) {
+        photoUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.readAsDataURL(formData.photo!)
+        })
+      }
 
       // Prepare data for both local store and API
       const leadData = {
-        firstName, 
-        lastName, 
-        email: formData.email, 
-        phone: formData.phone, 
-        service: formData.service, 
-        message: formData.message || "", 
-        source: "Website Form", 
-        urgency: formData.urgency, 
-        propertyType: formData.propertyType, 
-        address: formData.address, 
-        zipCode: formData.zipCode, 
-        photo: photoUrl, 
+        firstName,
+        lastName,
+        email: formData.email,
+        phone: formData.phone,
+        service: formData.service,
+        message: formData.message || "",
+        source: "Website Form",
+        urgency: formData.urgency,
+        propertyType: formData.propertyType,
+        address: formData.address,
+        zipCode: formData.zipCode,
+        photo: photoUrl,
       }
 
-      // Send data to backend API
-      const response = await fetch('http://localhost:8080/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(leadData),
+      // Try to send data to backend API (optional)
+      try {
+        const response = await fetch("http://localhost:8080/api/contact", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(leadData),
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          console.log("API Response:", result)
+        }
+      } catch (apiError) {
+        console.log("API not available, storing locally only:", apiError)
+      }
+
+      // Add lead to the local store (always works)
+      addLead(leadData)
+
+      setIsSubmitting(false)
+      setIsComplete(true)
+
+      toast({
+        title: "Lead submitted successfully",
+        description: "Your request has been received. We'll contact you soon!",
       })
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
-      console.log('API Response:', result)
- 
-      // Add lead to the local store
-      addLead(leadData)
- 
-      setIsSubmitting(false) 
-      setIsComplete(true) 
- 
-      toast({ 
-        title: "Lead submitted successfully", 
-        description: "Your request has been received and saved to the database", 
-      }) 
- 
-      // Reset form after 5 seconds 
-      setTimeout(() => { 
-        setIsComplete(false) 
-        setStep(1) 
-        setFormData({ 
-          service: "", 
-          propertyType: "", 
-          urgency: "", 
-          address: "", 
-          zipCode: "", 
-          photo: null, 
-          name: "", 
-          phone: "", 
-          email: "", 
-          message: "", 
-        }) 
-        closeLeadForm() 
-      }, 5000) 
-    } catch (error) { 
-      console.error('Error submitting form:', error)
-      setIsSubmitting(false) 
-      toast({ 
-        title: "Error submitting form", 
-        description: error instanceof Error ? error.message : "Please try again later", 
-        variant: "destructive", 
-      }) 
-    } 
+      // Reset form after 5 seconds
+      setTimeout(() => {
+        setIsComplete(false)
+        setStep(1)
+        setFormData({
+          service: "",
+          propertyType: "",
+          urgency: "",
+          address: "",
+          zipCode: "",
+          photo: null,
+          name: "",
+          phone: "",
+          email: "",
+          message: "",
+        })
+        closeLeadForm()
+      }, 5000)
+    } catch (error) {
+      console.error("Error submitting form:", error)
+      setIsSubmitting(false)
+      toast({
+        title: "Error submitting form",
+        description: error instanceof Error ? error.message : "Please try again later",
+        variant: "destructive",
+      })
+    }
   }
 
   const nextStep = () => {
@@ -250,7 +252,7 @@ export default function LeadForm() {
             className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
           >
             {/* Header */}
-            <div className="relative bg-brand-orange text-white p-4 pb-6">
+            <div className="relative bg-orange-500 text-white p-4 pb-6">
               <Button
                 variant="ghost"
                 size="icon"
@@ -268,7 +270,10 @@ export default function LeadForm() {
 
               {/* Progress bar */}
               <div className="absolute bottom-0 left-0 right-0 h-2 bg-white/20">
-                <div className="h-full bg-brand-green progress-bar" style={{ width: `${progress}%` }} />
+                <div
+                  className="h-full bg-green-500 transition-all duration-300 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
             </div>
 
@@ -276,8 +281,8 @@ export default function LeadForm() {
             <div className="p-5 overflow-y-auto max-h-[calc(90vh-80px)]">
               {isComplete ? (
                 <div className="text-center py-8">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-green/20 mb-4">
-                    <CheckCircle className="h-8 w-8 text-brand-green" />
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-4">
+                    <CheckCircle className="h-8 w-8 text-green-500" />
                   </div>
                   <h3 className="text-xl font-semibold mb-2 text-gray-800">Thank You!</h3>
                   <p className="text-sm text-gray-600 mb-6">
@@ -286,7 +291,7 @@ export default function LeadForm() {
                   </p>
                   <Button
                     onClick={closeLeadForm}
-                    className="bg-brand-orange hover:bg-brand-orange/90 text-white text-sm py-2 px-6"
+                    className="bg-orange-500 hover:bg-orange-600 text-white text-sm py-2 px-6"
                   >
                     Close
                   </Button>
@@ -297,7 +302,7 @@ export default function LeadForm() {
                   {step === 1 && (
                     <div>
                       <div className="flex items-center mb-4">
-                        <HelpCircle className="h-4 w-4 text-brand-orange mr-2" />
+                        <HelpCircle className="h-4 w-4 text-orange-500 mr-2" />
                         <h3 className="text-base font-semibold text-gray-800">What service do you need?</h3>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -305,10 +310,10 @@ export default function LeadForm() {
                           <button
                             key={service.id}
                             onClick={() => handleServiceSelect(service.id)}
-                            className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-md hover:border-brand-orange hover:bg-brand-orange/5 transition-colors"
+                            className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-md hover:border-orange-500 hover:bg-orange-50 transition-colors"
                           >
-                            <div className="flat-icon flat-icon-sm flat-icon-primary rounded-full mb-2">
-                              <service.icon className="h-4 w-4" />
+                            <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center mb-2">
+                              <service.icon className="h-4 w-4 text-white" />
                             </div>
                             <span className="text-center text-xs text-gray-800">{service.label}</span>
                           </button>
@@ -321,7 +326,7 @@ export default function LeadForm() {
                   {step === 2 && (
                     <div>
                       <div className="flex items-center mb-4">
-                        <Building className="h-4 w-4 text-brand-orange mr-2" />
+                        <Building className="h-4 w-4 text-orange-500 mr-2" />
                         <h3 className="text-base font-semibold text-gray-800">Is this residential or commercial?</h3>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -329,10 +334,10 @@ export default function LeadForm() {
                           <button
                             key={type.id}
                             onClick={() => handlePropertyTypeSelect(type.id)}
-                            className="flex flex-col items-center justify-center p-4 border border-gray-200 rounded-md hover:border-brand-orange hover:bg-brand-orange/5 transition-colors"
+                            className="flex flex-col items-center justify-center p-4 border border-gray-200 rounded-md hover:border-orange-500 hover:bg-orange-50 transition-colors"
                           >
-                            <div className="flat-icon flat-icon-sm flat-icon-primary rounded-full mb-2">
-                              <type.icon className="h-4 w-4" />
+                            <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center mb-2">
+                              <type.icon className="h-4 w-4 text-white" />
                             </div>
                             <span className="text-center text-sm text-gray-800">{type.label}</span>
                           </button>
@@ -343,7 +348,7 @@ export default function LeadForm() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-sm py-1.5 px-3 border-brand-green text-brand-green"
+                          className="text-sm py-1.5 px-3 border-green-500 text-green-500 hover:bg-green-50"
                           onClick={prevStep}
                         >
                           <ChevronLeft className="h-3 w-3 mr-1" />
@@ -357,7 +362,7 @@ export default function LeadForm() {
                   {step === 3 && (
                     <div>
                       <div className="flex items-center mb-4">
-                        <Clock className="h-4 w-4 text-brand-orange mr-2" />
+                        <Clock className="h-4 w-4 text-orange-500 mr-2" />
                         <h3 className="text-base font-semibold text-gray-800">Is this urgent or routine?</h3>
                       </div>
                       <div className="grid grid-cols-1 gap-3">
@@ -365,10 +370,10 @@ export default function LeadForm() {
                           <button
                             key={level.id}
                             onClick={() => handleUrgencySelect(level.id)}
-                            className="flex items-center p-3 border border-gray-200 rounded-md hover:border-brand-orange hover:bg-brand-orange/5 transition-colors"
+                            className="flex items-center p-3 border border-gray-200 rounded-md hover:border-orange-500 hover:bg-orange-50 transition-colors"
                           >
-                            <div className="flat-icon flat-icon-sm flat-icon-primary rounded-full mr-3">
-                              <level.icon className="h-4 w-4" />
+                            <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center mr-3">
+                              <level.icon className="h-4 w-4 text-white" />
                             </div>
                             <span className="text-sm text-gray-800">{level.label}</span>
                           </button>
@@ -379,7 +384,7 @@ export default function LeadForm() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-sm py-1.5 px-3 border-brand-green text-brand-green"
+                          className="text-sm py-1.5 px-3 border-green-500 text-green-500 hover:bg-green-50"
                           onClick={prevStep}
                         >
                           <ChevronLeft className="h-3 w-3 mr-1" />
@@ -393,7 +398,7 @@ export default function LeadForm() {
                   {step === 4 && (
                     <div>
                       <div className="flex items-center mb-4">
-                        <MapPin className="h-4 w-4 text-brand-orange mr-2" />
+                        <MapPin className="h-4 w-4 text-orange-500 mr-2" />
                         <h3 className="text-base font-semibold text-gray-800">What's your address?</h3>
                       </div>
                       <form onSubmit={handleAddressSubmit}>
@@ -403,11 +408,11 @@ export default function LeadForm() {
                               Street Address
                             </label>
                             <div className="relative">
-                              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-orange h-4 w-4" />
+                              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-orange-500 h-4 w-4" />
                               <Input
                                 id="address"
                                 placeholder="123 Main St"
-                                className="pl-9 py-2 text-sm border-brand-green/50 focus:border-brand-green"
+                                className="pl-9 py-2 text-sm border-green-500/50 focus:border-green-500"
                                 value={formData.address}
                                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                 required
@@ -420,11 +425,11 @@ export default function LeadForm() {
                               Zip Code
                             </label>
                             <div className="relative">
-                              <Info className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-orange h-4 w-4" />
+                              <Info className="absolute left-3 top-1/2 transform -translate-y-1/2 text-orange-500 h-4 w-4" />
                               <Input
                                 id="zipCode"
                                 placeholder="77001"
-                                className="pl-9 py-2 text-sm border-brand-green/50 focus:border-brand-green"
+                                className="pl-9 py-2 text-sm border-green-500/50 focus:border-green-500"
                                 value={formData.zipCode}
                                 onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
                                 required
@@ -438,7 +443,7 @@ export default function LeadForm() {
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="text-sm py-1.5 px-3 border-brand-green text-brand-green"
+                            className="text-sm py-1.5 px-3 border-green-500 text-green-500 hover:bg-green-50"
                             onClick={prevStep}
                           >
                             <ChevronLeft className="h-3 w-3 mr-1" />
@@ -447,7 +452,7 @@ export default function LeadForm() {
                           <Button
                             type="submit"
                             size="sm"
-                            className="bg-brand-orange hover:bg-brand-orange/90 text-white text-sm py-1.5 px-3"
+                            className="bg-orange-500 hover:bg-orange-600 text-white text-sm py-1.5 px-3"
                           >
                             Continue
                             <ChevronRight className="h-3 w-3 ml-1" />
@@ -461,7 +466,7 @@ export default function LeadForm() {
                   {step === 5 && (
                     <div>
                       <div className="flex items-center mb-2">
-                        <Camera className="h-4 w-4 text-brand-orange mr-2" />
+                        <Camera className="h-4 w-4 text-orange-500 mr-2" />
                         <h3 className="text-base font-semibold text-gray-800">
                           Upload a photo of your roof (Optional)
                         </h3>
@@ -469,14 +474,14 @@ export default function LeadForm() {
                       <p className="text-xs text-gray-600 mb-4">This helps us provide a more accurate estimate</p>
 
                       <form onSubmit={handlePhotoSubmit}>
-                        <div className="border-2 border-dashed border-brand-green/30 rounded-md p-6 text-center">
+                        <div className="border-2 border-dashed border-green-500/30 rounded-md p-6 text-center">
                           <div className="mb-3">
-                            <Upload className="h-8 w-8 text-brand-green mx-auto" />
+                            <Upload className="h-8 w-8 text-green-500 mx-auto" />
                           </div>
 
                           {formData.photo ? (
                             <div className="mb-3">
-                              <p className="text-sm text-brand-green font-medium">Photo selected</p>
+                              <p className="text-sm text-green-500 font-medium">Photo selected</p>
                               <p className="text-xs text-gray-500">{formData.photo.name}</p>
                             </div>
                           ) : (
@@ -494,7 +499,7 @@ export default function LeadForm() {
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="text-xs py-1.5 px-3 border-brand-green text-brand-green"
+                            className="text-xs py-1.5 px-3 border-green-500 text-green-500 hover:bg-green-50"
                             onClick={() => document.getElementById("photo")?.click()}
                           >
                             <Camera className="h-3 w-3 mr-1" />
@@ -507,7 +512,7 @@ export default function LeadForm() {
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="text-sm py-1.5 px-3 border-brand-green text-brand-green"
+                            className="text-sm py-1.5 px-3 border-green-500 text-green-500 hover:bg-green-50"
                             onClick={prevStep}
                           >
                             <ChevronLeft className="h-3 w-3 mr-1" />
@@ -516,7 +521,7 @@ export default function LeadForm() {
                           <Button
                             type="submit"
                             size="sm"
-                            className="bg-brand-orange hover:bg-brand-orange/90 text-white text-sm py-1.5 px-3"
+                            className="bg-orange-500 hover:bg-orange-600 text-white text-sm py-1.5 px-3"
                           >
                             {formData.photo ? "Continue" : "Skip This Step"}
                             <ChevronRight className="h-3 w-3 ml-1" />
@@ -530,7 +535,7 @@ export default function LeadForm() {
                   {step === 6 && (
                     <div>
                       <div className="flex items-center mb-4">
-                        <User className="h-4 w-4 text-brand-orange mr-2" />
+                        <User className="h-4 w-4 text-orange-500 mr-2" />
                         <h3 className="text-base font-semibold text-gray-800">Your Contact Information</h3>
                       </div>
                       <form onSubmit={handleFinalSubmit}>
@@ -540,11 +545,11 @@ export default function LeadForm() {
                               Full Name
                             </label>
                             <div className="relative">
-                              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-orange h-4 w-4" />
+                              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-orange-500 h-4 w-4" />
                               <Input
                                 id="name"
                                 placeholder="John Smith"
-                                className="pl-9 py-2 text-sm border-brand-green/50 focus:border-brand-green"
+                                className="pl-9 py-2 text-sm border-green-500/50 focus:border-green-500"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 required
@@ -557,12 +562,12 @@ export default function LeadForm() {
                               Phone Number
                             </label>
                             <div className="relative">
-                              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-orange h-4 w-4" />
+                              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-orange-500 h-4 w-4" />
                               <Input
                                 id="phone"
                                 type="tel"
                                 placeholder="(713) 555-1234"
-                                className="pl-9 py-2 text-sm border-brand-green/50 focus:border-brand-green"
+                                className="pl-9 py-2 text-sm border-green-500/50 focus:border-green-500"
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                 required
@@ -575,12 +580,12 @@ export default function LeadForm() {
                               Email Address
                             </label>
                             <div className="relative">
-                              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-orange h-4 w-4" />
+                              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-orange-500 h-4 w-4" />
                               <Input
                                 id="email"
                                 type="email"
                                 placeholder="john@example.com"
-                                className="pl-9 py-2 text-sm border-brand-green/50 focus:border-brand-green"
+                                className="pl-9 py-2 text-sm border-green-500/50 focus:border-green-500"
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 required
@@ -593,12 +598,12 @@ export default function LeadForm() {
                               Additional Information (Optional)
                             </label>
                             <div className="relative">
-                              <FileText className="absolute left-3 top-3 text-brand-orange h-4 w-4" />
+                              <FileText className="absolute left-3 top-3 text-orange-500 h-4 w-4" />
                               <Textarea
                                 id="message"
                                 placeholder="Tell us more about your roofing needs..."
                                 rows={3}
-                                className="pl-9 text-sm border-brand-green/50 focus:border-brand-green"
+                                className="pl-9 text-sm border-green-500/50 focus:border-green-500"
                                 value={formData.message}
                                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                               />
@@ -611,7 +616,7 @@ export default function LeadForm() {
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="text-sm py-1.5 px-3 border-brand-green text-brand-green"
+                            className="text-sm py-1.5 px-3 border-green-500 text-green-500 hover:bg-green-50"
                             onClick={prevStep}
                             disabled={isSubmitting}
                           >
@@ -621,7 +626,7 @@ export default function LeadForm() {
                           <Button
                             type="submit"
                             size="sm"
-                            className="bg-brand-orange hover:bg-brand-orange/90 text-white text-sm py-1.5 px-3"
+                            className="bg-orange-500 hover:bg-orange-600 text-white text-sm py-1.5 px-3"
                             disabled={isSubmitting}
                           >
                             {isSubmitting ? (

@@ -10,10 +10,14 @@ export default function Providers({ children }: { children: ReactNode }) {
     setIsMounted(true)
   }, [])
 
+  if (!isMounted) {
+    return <>{children}</>
+  }
+
   return (
     <>
       {children}
-      {isMounted && <LeadForm />}
+      <LeadForm />
     </>
   )
 }

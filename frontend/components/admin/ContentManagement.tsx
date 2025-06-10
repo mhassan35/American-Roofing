@@ -2,1122 +2,461 @@
 
 import { useState } from "react"
 import { useContentStore } from "@/lib/store"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
-import {
-  Edit,
-  Settings,
-  Eye,
-  FileText,
-  ArrowLeft,
-  Save,
-  Home,
-  Users,
-  Star,
-  Camera,
-  Phone,
-  Target,
-  Globe,
-  Wrench,
-  Cloud,
-  Plus,
-  Trash2,
-  type LucideIcon,
-} from "lucide-react"
-import type { ComponentType, PageType, CategoryType, ComponentContent, PageContent } from "@/lib/store"
-
-// Component icons mapping with proper typing
-const componentIcons: Record<ComponentType, LucideIcon> = {
-  hero: Home,
-  services: Settings,
-  "social-proof": Star,
-  gallery: Camera,
-  cta: Target,
-  "why-choose": Users,
-  "floating-cta": Phone,
-  "contact-form": Globe,
-  "about-content": FileText,
-  "service-benefits": Star,
-  "service-process": Settings,
-  "service-faqs": FileText,
-  "service-layout": FileText,
-}
-
-// Page icons mapping with proper typing
-const pageIcons: Record<PageType, LucideIcon> = {
-  home: Home,
-  about: Users,
-  contact: Phone,
-  services: Settings,
-  "roof-replacement": Wrench,
-  "roof-repair": Wrench,
-  "storm-damage": Cloud,
-  gallery: Camera,
-}
-
-// Helper function to get component icon safely
-const getComponentIcon = (type: string): LucideIcon => {
-  return componentIcons[type as ComponentType] || Settings
-}
-
-// Helper function to get page icon safely
-const getPageIcon = (id: string): LucideIcon => {
-  return pageIcons[id as PageType] || FileText
-}
-
-// Interface for editing settings
-interface EditingSettings {
-  title?: string
-  subtitle?: string
-  ctaText?: string
-  primaryCta?: string
-  secondaryCta?: string
-  phone?: string
-  showAfterScroll?: number
-  rating?: string
-  reviewCount?: string
-  benefits?: string[]
-  services?: any[]
-  features?: any[]
-  testimonials?: any[]
-  steps?: any[]
-  faqs?: any[]
-  story?: {
-    title?: string
-    content?: string
-  }
-  mission?: {
-    title?: string
-    content?: string
-  }
-  credentials?: string[]
-  contactInfo?: {
-    phone?: string
-    email?: string
-    address?: string
-    hours?: string
-  }
-  seoTitle?: string
-  seoDescription?: string
-  seoKeywords?: string
-  backgroundImage?: string
-  imageAlt?: string
-  galleryImages?: string
-  showOnMobile?: boolean
-  showOnDesktop?: boolean
-  customClasses?: string
-  description?: string
-  content?: string
-  categories?: string[]
-  projects?: any[]
-  [key: string]: any
-}
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Edit2, Trash2, Save, Copy, Settings, ImageIcon, Type, Layout, Eye, EyeOff } from "lucide-react"
+import { toast } from "@/hooks/use-toast"
+import SEOEditor from "./SEOEditor"
+import ImageUpload from "./ImageUpload"
 
 export default function ContentManagement() {
   const {
     pages,
     selectedPage,
     selectedComponent,
-    categories,
     selectPage,
     selectComponent,
     updateComponentSettings,
     toggleComponent,
+    addComponent,
+    deleteComponent,
+    duplicateComponent,
+    removeImage,
   } = useContentStore()
-  const [editingSettings, setEditingSettings] = useState<EditingSettings>({})
-  const [activeCategory, setActiveCategory] = useState<CategoryType>("main")
 
-  const handlePageSelect = (pageId: string): void => {
+  const [editingField, setEditingField] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState("")
+  const [selectedPageId, setSelectedPageId] = useState("home")
+
+  const handleSelectPage = (pageId: string) => {
+    setSelectedPageId(pageId)
     selectPage(pageId)
   }
 
-  const handleComponentSelect = (componentId: string): void => {
-    selectComponent(componentId)
-    if (selectedPage) {
-      const component = selectedPage.components.find((c: ComponentContent) => c.id === componentId)
-      if (component) {
-        setEditingSettings(component.settings || {})
-      }
-    }
+  const handleEditField = (fieldPath: string, currentValue: any) => {
+    setEditingField(fieldPath)
+    setEditValue(typeof currentValue === "object" ? JSON.stringify(currentValue, null, 2) : String(currentValue))
   }
 
-  const handleSaveSettings = (): void => {
-    if (selectedComponent) {
+  const handleSaveField = () => {
+    if (!selectedComponent || !editingField) return
+
+    try {
+      let newValue = editValue
+
+      // Try to parse as JSON if it looks like an object/array
+      if (editValue.trim().startsWith("{") || editValue.trim().startsWith("[")) {
+        try {
+          newValue = JSON.parse(editValue)
+        } catch {
+          // Keep as string if JSON parsing fails
+        }
+      }
+
+      const fieldParts = editingField.split(".")
+      const newSettings = { ...selectedComponent.settings }
+
+      if (fieldParts.length === 1) {
+        newSettings[fieldParts[0]] = newValue
+      } else if (fieldParts.length === 2) {
+        if (!newSettings[fieldParts[0]]) newSettings[fieldParts[0]] = {}
+        newSettings[fieldParts[0]][fieldParts[1]] = newValue
+      }
+
       updateComponentSettings({
         componentId: selectedComponent.id,
-        settings: editingSettings,
+        settings: newSettings,
+      })
+
+      setEditingField(null)
+      setEditValue("")
+
+      toast({
+        title: "Content Updated",
+        description: "Content has been successfully updated.",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update content. Please check your input.",
+        variant: "destructive",
       })
     }
   }
 
-  const handleToggleComponent = (componentId: string): void => {
-    toggleComponent(componentId)
-  }
+  const handleAddComponent = (type: string) => {
+    if (!selectedPage) return
 
-  const handleInputChange = (field: string, value: string | number | boolean): void => {
-    setEditingSettings((prev) => ({ ...prev, [field]: value }))
-  }
+    const newComponent = {
+      name: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+      type: type as any,
+      isActive: true,
+      settings: getDefaultSettings(type),
+    }
 
-  const handleNestedInputChange = (parent: string, field: string, value: string): void => {
-    setEditingSettings((prev) => ({
-      ...prev,
-      [parent]: { ...prev[parent], [field]: value },
-    }))
-  }
+    addComponent({
+      pageId: selectedPage.id,
+      component: newComponent,
+    })
 
-  const handleArrayChange = (field: string, value: string): void => {
-    setEditingSettings((prev) => ({
-      ...prev,
-      [field]: value.split("\n").filter((item: string) => item.trim()),
-    }))
-  }
-
-  const handleObjectArrayChange = (field: string, index: number, key: string, value: string): void => {
-    setEditingSettings((prev) => {
-      const array = [...(prev[field] || [])]
-      if (!array[index]) array[index] = {}
-      array[index][key] = value
-      return { ...prev, [field]: array }
+    toast({
+      title: "Component Added",
+      description: `New ${type} component has been added.`,
     })
   }
 
-  const addArrayItem = (field: string, defaultItem: any): void => {
-    setEditingSettings((prev) => ({
-      ...prev,
-      [field]: [...(prev[field] || []), defaultItem],
-    }))
+  const handleDeleteComponent = (componentId: string) => {
+    if (!selectedPage) return
+
+    deleteComponent({
+      pageId: selectedPage.id,
+      componentId,
+    })
+
+    toast({
+      title: "Component Deleted",
+      description: "Component has been deleted.",
+      variant: "destructive",
+    })
   }
 
-  const removeArrayItem = (field: string, index: number): void => {
-    setEditingSettings((prev) => ({
-      ...prev,
-      [field]: (prev[field] || []).filter((_: any, i: number) => i !== index),
-    }))
+  const handleDuplicateComponent = (componentId: string) => {
+    if (!selectedPage) return
+
+    duplicateComponent({
+      pageId: selectedPage.id,
+      componentId,
+    })
+
+    toast({
+      title: "Component Duplicated",
+      description: "Component has been duplicated.",
+    })
   }
 
-  if (selectedPage && selectedComponent) {
-    return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Button variant="outline" size="sm" onClick={() => selectComponent("")} className="mr-4">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Components
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Edit {selectedComponent.name}</h1>
-              <p className="text-gray-600">{selectedPage.name}</p>
-            </div>
-          </div>
-          <Button onClick={handleSaveSettings} className="bg-orange-500 hover:bg-orange-600">
-            <Save className="h-4 w-4 mr-2" />
-            Save Changes
-          </Button>
-        </div>
+  const getDefaultSettings = (type: string) => {
+    const defaults: Record<string, any> = {
+      hero: {
+        title: "New Hero Title",
+        subtitle: "New hero subtitle",
+        primaryButton: "Primary Button",
+        secondaryButton: "Secondary Button",
+      },
+      services: {
+        title: "New Services Section",
+        subtitle: "Services description",
+        services: [],
+      },
+      "why-choose": {
+        title: "Why Choose Us",
+        subtitle: "Benefits description",
+        features: [],
+      },
+      testimonials: {
+        title: "Customer Reviews",
+        subtitle: "What our customers say",
+        reviews: [],
+      },
+      gallery: {
+        title: "Project Gallery",
+        subtitle: "Our recent work",
+        projects: [],
+      },
+      "trust-badges": {
+        badges: [],
+      },
+      "trust-section": {
+        title: "Trust & Certifications",
+        certifications: [],
+        stats: [],
+      },
+      "service-layout": {
+        title: "Service Title",
+        description: "Service description",
+        content: "Service content",
+      },
+      "service-benefits": {
+        title: "Service Benefits",
+        benefits: [],
+      },
+      "service-process": {
+        title: "Our Process",
+        steps: [],
+      },
+      "service-faqs": {
+        title: "Frequently Asked Questions",
+        faqs: [],
+      },
+    }
 
-        {/* Component Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Component Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Hero Section Settings */}
-            {selectedComponent.type === "hero" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Main Title</label>
-                  <Input
-                    value={editingSettings.title || ""}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Subtitle</label>
-                  <Textarea
-                    value={editingSettings.subtitle || ""}
-                    onChange={(e) => handleInputChange("subtitle", e.target.value)}
-                    rows={3}
-                  />
-                </div>
-                {editingSettings.ctaText !== undefined && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">CTA Button Text</label>
-                    <Input
-                      value={editingSettings.ctaText || ""}
-                      onChange={(e) => handleInputChange("ctaText", e.target.value)}
-                    />
-                  </div>
-                )}
-                <div>
-                  <label className="block text-sm font-medium mb-2">Background Image URL</label>
-                  <Input
-                    value={editingSettings.backgroundImage || ""}
-                    onChange={(e) => handleInputChange("backgroundImage", e.target.value)}
-                    placeholder="/placeholder.svg?height=600&width=1200"
-                  />
-                </div>
-                {editingSettings.features && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Features (one per line)</label>
-                    <Textarea
-                      value={Array.isArray(editingSettings.features) ? editingSettings.features.join("\n") : ""}
-                      onChange={(e) => handleArrayChange("features", e.target.value)}
-                      rows={4}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Services Section Settings */}
-            {selectedComponent.type === "services" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Section Title</label>
-                  <Input
-                    value={editingSettings.title || ""}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Section Subtitle</label>
-                  <Textarea
-                    value={editingSettings.subtitle || ""}
-                    onChange={(e) => handleInputChange("subtitle", e.target.value)}
-                    rows={3}
-                  />
-                </div>
-                {editingSettings.services && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Services</label>
-                    {editingSettings.services.map((service: any, index: number) => (
-                      <div key={index} className="border p-4 rounded-md mb-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="font-medium">Service {index + 1}</h4>
-                          <Button variant="outline" size="sm" onClick={() => removeArrayItem("services", index)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="space-y-2">
-                          <Input
-                            placeholder="Service Title"
-                            value={service.title || ""}
-                            onChange={(e) => handleObjectArrayChange("services", index, "title", e.target.value)}
-                          />
-                          <Textarea
-                            placeholder="Service Description"
-                            value={service.description || ""}
-                            onChange={(e) => handleObjectArrayChange("services", index, "description", e.target.value)}
-                            rows={2}
-                          />
-                          <Input
-                            placeholder="Icon (e.g., home, wrench, cloud)"
-                            value={service.icon || ""}
-                            onChange={(e) => handleObjectArrayChange("services", index, "icon", e.target.value)}
-                          />
-                          <Input
-                            placeholder="Link URL"
-                            value={service.link || ""}
-                            onChange={(e) => handleObjectArrayChange("services", index, "link", e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      onClick={() => addArrayItem("services", { title: "", description: "", icon: "home", link: "" })}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Service
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Why Choose Us Settings */}
-            {selectedComponent.type === "why-choose" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Section Title</label>
-                  <Input
-                    value={editingSettings.title || ""}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Section Subtitle</label>
-                  <Textarea
-                    value={editingSettings.subtitle || ""}
-                    onChange={(e) => handleInputChange("subtitle", e.target.value)}
-                    rows={3}
-                  />
-                </div>
-                {editingSettings.features && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Features</label>
-                    {editingSettings.features.map((feature: any, index: number) => (
-                      <div key={index} className="border p-4 rounded-md mb-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="font-medium">Feature {index + 1}</h4>
-                          <Button variant="outline" size="sm" onClick={() => removeArrayItem("features", index)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="space-y-2">
-                          <Input
-                            placeholder="Feature Title"
-                            value={feature.title || ""}
-                            onChange={(e) => handleObjectArrayChange("features", index, "title", e.target.value)}
-                          />
-                          <Textarea
-                            placeholder="Feature Description"
-                            value={feature.description || ""}
-                            onChange={(e) => handleObjectArrayChange("features", index, "description", e.target.value)}
-                            rows={2}
-                          />
-                          <Input
-                            placeholder="Icon (e.g., shield, users, award, clock)"
-                            value={feature.icon || ""}
-                            onChange={(e) => handleObjectArrayChange("features", index, "icon", e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      onClick={() => addArrayItem("features", { title: "", description: "", icon: "shield" })}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Feature
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Social Proof Settings */}
-            {selectedComponent.type === "social-proof" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Section Title</label>
-                  <Input
-                    value={editingSettings.title || ""}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Rating</label>
-                  <Input
-                    value={editingSettings.rating || ""}
-                    onChange={(e) => handleInputChange("rating", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Review Count</label>
-                  <Input
-                    value={editingSettings.reviewCount || ""}
-                    onChange={(e) => handleInputChange("reviewCount", e.target.value)}
-                  />
-                </div>
-                {editingSettings.testimonials && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Testimonials</label>
-                    {editingSettings.testimonials.map((testimonial: any, index: number) => (
-                      <div key={index} className="border p-4 rounded-md mb-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="font-medium">Testimonial {index + 1}</h4>
-                          <Button variant="outline" size="sm" onClick={() => removeArrayItem("testimonials", index)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="space-y-2">
-                          <Input
-                            placeholder="Customer Name"
-                            value={testimonial.name || ""}
-                            onChange={(e) => handleObjectArrayChange("testimonials", index, "name", e.target.value)}
-                          />
-                          <Textarea
-                            placeholder="Testimonial Text"
-                            value={testimonial.text || ""}
-                            onChange={(e) => handleObjectArrayChange("testimonials", index, "text", e.target.value)}
-                            rows={3}
-                          />
-                          <Input
-                            type="number"
-                            placeholder="Rating (1-5)"
-                            value={testimonial.rating || ""}
-                            onChange={(e) => handleObjectArrayChange("testimonials", index, "rating", e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      onClick={() => addArrayItem("testimonials", { name: "", text: "", rating: 5 })}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Testimonial
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* About Content Settings */}
-            {selectedComponent.type === "about-content" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Story Title</label>
-                  <Input
-                    value={editingSettings.story?.title || ""}
-                    onChange={(e) => handleNestedInputChange("story", "title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Story Content</label>
-                  <Textarea
-                    value={editingSettings.story?.content || ""}
-                    onChange={(e) => handleNestedInputChange("story", "content", e.target.value)}
-                    rows={6}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Mission Title</label>
-                  <Input
-                    value={editingSettings.mission?.title || ""}
-                    onChange={(e) => handleNestedInputChange("mission", "title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Mission Content</label>
-                  <Textarea
-                    value={editingSettings.mission?.content || ""}
-                    onChange={(e) => handleNestedInputChange("mission", "content", e.target.value)}
-                    rows={3}
-                  />
-                </div>
-                {editingSettings.credentials && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Credentials (one per line)</label>
-                    <Textarea
-                      value={Array.isArray(editingSettings.credentials) ? editingSettings.credentials.join("\n") : ""}
-                      onChange={(e) => handleArrayChange("credentials", e.target.value)}
-                      rows={6}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Service Layout Settings */}
-            {selectedComponent.type === "service-layout" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Section Title</label>
-                  <Input
-                    value={editingSettings.title || ""}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Description</label>
-                  <Textarea
-                    value={editingSettings.description || ""}
-                    onChange={(e) => handleInputChange("description", e.target.value)}
-                    rows={4}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Additional Content</label>
-                  <Textarea
-                    value={editingSettings.content || ""}
-                    onChange={(e) => handleInputChange("content", e.target.value)}
-                    rows={3}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Service Benefits Settings */}
-            {selectedComponent.type === "service-benefits" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Section Title</label>
-                  <Input
-                    value={editingSettings.title || ""}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                  />
-                </div>
-                {editingSettings.benefits && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Benefits</label>
-                    {editingSettings.benefits.map((benefit: any, index: number) => (
-                      <div key={index} className="border p-4 rounded-md mb-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="font-medium">Benefit {index + 1}</h4>
-                          <Button variant="outline" size="sm" onClick={() => removeArrayItem("benefits", index)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="space-y-2">
-                          <Input
-                            placeholder="Benefit Title"
-                            value={benefit.title || ""}
-                            onChange={(e) => handleObjectArrayChange("benefits", index, "title", e.target.value)}
-                          />
-                          <Textarea
-                            placeholder="Benefit Description"
-                            value={benefit.description || ""}
-                            onChange={(e) => handleObjectArrayChange("benefits", index, "description", e.target.value)}
-                            rows={2}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    <Button variant="outline" onClick={() => addArrayItem("benefits", { title: "", description: "" })}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Benefit
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Service Process Settings */}
-            {selectedComponent.type === "service-process" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Section Title</label>
-                  <Input
-                    value={editingSettings.title || ""}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Section Subtitle</label>
-                  <Textarea
-                    value={editingSettings.subtitle || ""}
-                    onChange={(e) => handleInputChange("subtitle", e.target.value)}
-                    rows={3}
-                  />
-                </div>
-                {editingSettings.steps && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Process Steps</label>
-                    {editingSettings.steps.map((step: any, index: number) => (
-                      <div key={index} className="border p-4 rounded-md mb-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="font-medium">Step {index + 1}</h4>
-                          <Button variant="outline" size="sm" onClick={() => removeArrayItem("steps", index)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="space-y-2">
-                          <Input
-                            placeholder="Step Number"
-                            type="number"
-                            value={step.number || index + 1}
-                            onChange={(e) => handleObjectArrayChange("steps", index, "number", e.target.value)}
-                          />
-                          <Input
-                            placeholder="Step Title"
-                            value={step.title || ""}
-                            onChange={(e) => handleObjectArrayChange("steps", index, "title", e.target.value)}
-                          />
-                          <Textarea
-                            placeholder="Step Description"
-                            value={step.description || ""}
-                            onChange={(e) => handleObjectArrayChange("steps", index, "description", e.target.value)}
-                            rows={2}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        addArrayItem("steps", { number: editingSettings.steps.length + 1, title: "", description: "" })
-                      }
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Step
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Service FAQs Settings */}
-            {selectedComponent.type === "service-faqs" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Section Title</label>
-                  <Input
-                    value={editingSettings.title || ""}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                  />
-                </div>
-                {editingSettings.faqs && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">FAQs</label>
-                    {editingSettings.faqs.map((faq: any, index: number) => (
-                      <div key={index} className="border p-4 rounded-md mb-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="font-medium">FAQ {index + 1}</h4>
-                          <Button variant="outline" size="sm" onClick={() => removeArrayItem("faqs", index)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="space-y-2">
-                          <Input
-                            placeholder="Question"
-                            value={faq.question || ""}
-                            onChange={(e) => handleObjectArrayChange("faqs", index, "question", e.target.value)}
-                          />
-                          <Textarea
-                            placeholder="Answer"
-                            value={faq.answer || ""}
-                            onChange={(e) => handleObjectArrayChange("faqs", index, "answer", e.target.value)}
-                            rows={3}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    <Button variant="outline" onClick={() => addArrayItem("faqs", { question: "", answer: "" })}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add FAQ
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Gallery Settings */}
-            {selectedComponent.type === "gallery" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Section Title</label>
-                  <Input
-                    value={editingSettings.title || ""}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Section Subtitle</label>
-                  <Textarea
-                    value={editingSettings.subtitle || ""}
-                    onChange={(e) => handleInputChange("subtitle", e.target.value)}
-                    rows={2}
-                  />
-                </div>
-                {editingSettings.categories && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Categories (one per line)</label>
-                    <Textarea
-                      value={Array.isArray(editingSettings.categories) ? editingSettings.categories.join("\n") : ""}
-                      onChange={(e) => handleArrayChange("categories", e.target.value)}
-                      rows={4}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* CTA Section Settings */}
-            {selectedComponent.type === "cta" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Main Title</label>
-                  <Input
-                    value={editingSettings.title || ""}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Subtitle</label>
-                  <Textarea
-                    value={editingSettings.subtitle || ""}
-                    onChange={(e) => handleInputChange("subtitle", e.target.value)}
-                    rows={2}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Primary Button Text</label>
-                  <Input
-                    value={editingSettings.primaryCta || ""}
-                    onChange={(e) => handleInputChange("primaryCta", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Secondary Button Text</label>
-                  <Input
-                    value={editingSettings.secondaryCta || ""}
-                    onChange={(e) => handleInputChange("secondaryCta", e.target.value)}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Contact Form Settings */}
-            {selectedComponent.type === "contact-form" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Form Title</label>
-                  <Input
-                    value={editingSettings.title || ""}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Form Subtitle</label>
-                  <Textarea
-                    value={editingSettings.subtitle || ""}
-                    onChange={(e) => handleInputChange("subtitle", e.target.value)}
-                    rows={2}
-                  />
-                </div>
-                <div className="space-y-4 border-t pt-4">
-                  <h4 className="text-lg font-semibold">Contact Information</h4>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Phone Number</label>
-                    <Input
-                      value={editingSettings.contactInfo?.phone || ""}
-                      onChange={(e) => handleNestedInputChange("contactInfo", "phone", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Email Address</label>
-                    <Input
-                      value={editingSettings.contactInfo?.email || ""}
-                      onChange={(e) => handleNestedInputChange("contactInfo", "email", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Address</label>
-                    <Textarea
-                      value={editingSettings.contactInfo?.address || ""}
-                      onChange={(e) => handleNestedInputChange("contactInfo", "address", e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Business Hours</label>
-                    <Textarea
-                      value={editingSettings.contactInfo?.hours || ""}
-                      onChange={(e) => handleNestedInputChange("contactInfo", "hours", e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Floating CTA Settings */}
-            {selectedComponent.type === "floating-cta" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Phone Number</label>
-                  <Input
-                    value={editingSettings.phone || ""}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">CTA Button Text</label>
-                  <Input
-                    value={editingSettings.ctaText || ""}
-                    onChange={(e) => handleInputChange("ctaText", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Show After Scroll (pixels)</label>
-                  <Input
-                    type="number"
-                    value={editingSettings.showAfterScroll?.toString() || ""}
-                    onChange={(e) => handleInputChange("showAfterScroll", Number.parseInt(e.target.value) || 0)}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Advanced Settings */}
-            <div className="space-y-4 border-t pt-6">
-              <h4 className="text-lg font-semibold text-gray-800">Advanced Settings</h4>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={editingSettings.showOnMobile !== false}
-                  onCheckedChange={(checked) => handleInputChange("showOnMobile", checked)}
-                />
-                <label className="text-sm font-medium">Show on Mobile</label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={editingSettings.showOnDesktop !== false}
-                  onCheckedChange={(checked) => handleInputChange("showOnDesktop", checked)}
-                />
-                <label className="text-sm font-medium">Show on Desktop</label>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Custom CSS Classes</label>
-                <Input
-                  value={editingSettings.customClasses || ""}
-                  onChange={(e) => handleInputChange("customClasses", e.target.value)}
-                  placeholder="custom-class-1 custom-class-2"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    return defaults[type] || { title: "New Component", content: "Component content" }
   }
 
-  if (selectedPage) {
-    const PageIcon = getPageIcon(selectedPage.id)
+  const renderFieldEditor = (fieldPath: string, value: any, label: string) => {
+    const isEditing = editingField === fieldPath
+    const displayValue = typeof value === "object" ? JSON.stringify(value, null, 2) : String(value || "")
 
     return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Button variant="outline" size="sm" onClick={() => selectPage("")} className="mr-4">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Pages
-            </Button>
-            <div className="flex items-center">
-              <div className="bg-orange-100 p-2 rounded-lg mr-3">
-                <PageIcon className="h-5 w-5 text-orange-600" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{selectedPage.name}</h1>
-                <p className="text-gray-600">Manage page components</p>
-              </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-700">{label}</label>
+        {isEditing ? (
+          <div className="space-y-2">
+            {typeof value === "object" || displayValue.length > 100 ? (
+              <Textarea
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                rows={6}
+                className="w-full font-mono text-sm"
+              />
+            ) : (
+              <Input value={editValue} onChange={(e) => setEditValue(e.target.value)} className="w-full" />
+            )}
+            <div className="flex space-x-2">
+              <Button onClick={handleSaveField} size="sm">
+                <Save className="h-4 w-4 mr-1" />
+                Save
+              </Button>
+              <Button variant="outline" onClick={() => setEditingField(null)} size="sm">
+                Cancel
+              </Button>
             </div>
           </div>
-        </div>
-
-        {/* Components List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {selectedPage.components.map((component: ComponentContent) => {
-            const IconComponent = getComponentIcon(component.type)
-            return (
-              <Card key={component.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center">
-                      <div className="bg-orange-100 p-2 rounded-lg mr-3">
-                        <IconComponent className="h-5 w-5 text-orange-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{component.name}</h3>
-                        <p className="text-sm text-gray-500 capitalize">{component.type.replace("-", " ")}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        checked={component.isActive}
-                        onCheckedChange={() => handleToggleComponent(component.id)}
-                      />
-                      <Badge variant={component.isActive ? "default" : "secondary"}>
-                        {component.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      size="sm"
-                      onClick={() => handleComponentSelect(component.id)}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Settings
-                    </Button>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-1" />
-                        Preview
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Settings className="h-4 w-4 mr-1" />
-                        Advanced
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
+        ) : (
+          <div className="space-y-2">
+            <div
+              className="p-3 bg-gray-50 rounded border min-h-[40px] cursor-pointer hover:bg-gray-100 transition-colors"
+              onClick={() => handleEditField(fieldPath, value)}
+            >
+              <p className="text-sm whitespace-pre-wrap break-words">
+                {displayValue || <span className="text-gray-400">Click to edit</span>}
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => handleEditField(fieldPath, value)}>
+              <Edit2 className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+          </div>
+        )}
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Content Management</h1>
-        <p className="text-gray-600">Manage your website content and page components</p>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Content Management</h1>
+        <Select value={selectedPageId} onValueChange={handleSelectPage}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Select page" />
+          </SelectTrigger>
+          <SelectContent>
+            {pages.map((page) => (
+              <SelectItem key={page.id} value={page.id}>
+                {page.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Category Tabs */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-        <Button
-          variant={activeCategory === "main" ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setActiveCategory("main")}
-          className={activeCategory === "main" ? "bg-white shadow-sm" : ""}
-        >
-          Main Pages
-        </Button>
-        <Button
-          variant={activeCategory === "service" ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setActiveCategory("service")}
-          className={activeCategory === "service" ? "bg-white shadow-sm" : ""}
-        >
-          Service Pages
-        </Button>
-        <Button
-          variant={activeCategory === "utility" ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setActiveCategory("utility")}
-          className={activeCategory === "utility" ? "bg-white shadow-sm" : ""}
-        >
-          Utility Pages
-        </Button>
-      </div>
+      {selectedPage && (
+        <Tabs defaultValue="components" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="components">
+              <Layout className="h-4 w-4 mr-2" />
+              Components
+            </TabsTrigger>
+            <TabsTrigger value="seo">
+              <Settings className="h-4 w-4 mr-2" />
+              SEO Settings
+            </TabsTrigger>
+            <TabsTrigger value="images">
+              <ImageIcon className="h-4 w-4 mr-2" />
+              Images
+            </TabsTrigger>
+          </TabsList>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Pages</p>
-                <p className="text-2xl font-bold text-gray-900">{pages?.length || 0}</p>
-              </div>
-              <div className="bg-blue-500 p-3 rounded-lg">
-                <FileText className="h-6 w-6 text-white" />
-              </div>
+          <TabsContent value="components" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Page Components</h2>
+              <Select onValueChange={handleAddComponent}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Add Component" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="hero">Hero Section</SelectItem>
+                  <SelectItem value="services">Services</SelectItem>
+                  <SelectItem value="why-choose">Why Choose Us</SelectItem>
+                  <SelectItem value="testimonials">Testimonials</SelectItem>
+                  <SelectItem value="gallery">Gallery</SelectItem>
+                  <SelectItem value="trust-badges">Trust Badges</SelectItem>
+                  <SelectItem value="trust-section">Trust Section</SelectItem>
+                  <SelectItem value="service-layout">Service Content</SelectItem>
+                  <SelectItem value="service-benefits">Service Benefits</SelectItem>
+                  <SelectItem value="service-process">Service Process</SelectItem>
+                  <SelectItem value="service-faqs">Service FAQs</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Main Pages</p>
-                <p className="text-2xl font-bold text-gray-900">{categories?.main?.length || 0}</p>
-              </div>
-              <div className="bg-green-500 p-3 rounded-lg">
-                <Home className="h-6 w-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Service Pages</p>
-                <p className="text-2xl font-bold text-gray-900">{categories?.service?.length || 0}</p>
-              </div>
-              <div className="bg-orange-500 p-3 rounded-lg">
-                <Settings className="h-6 w-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Components</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {pages ? pages.reduce((acc: number, page: PageContent) => acc + page.components.length, 0) : 0}
-                </p>
-              </div>
-              <div className="bg-purple-500 p-3 rounded-lg">
-                <Eye className="h-6 w-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Pages Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories && categories[activeCategory] ? (
-          categories[activeCategory].map((pageId: string) => {
-            const page = pages.find((p: PageContent) => p.id === pageId)
-            if (!page) return null
-
-            const PageIcon = getPageIcon(page.id)
-            return (
-              <Card
-                key={page.id}
-                className="hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => handlePageSelect(page.id)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center">
-                      <div className="bg-orange-100 p-3 rounded-lg mr-3">
-                        <PageIcon className="h-6 w-6 text-orange-600" />
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Components List */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Components</h3>
+                {selectedPage.components.map((component, index) => (
+                  <Card
+                    key={component.id}
+                    className={`cursor-pointer transition-all duration-200 ${
+                      selectedComponent?.id === component.id ? "ring-2 ring-orange-500 shadow-lg" : "hover:shadow-md"
+                    }`}
+                    onClick={() => selectComponent(component.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <Switch
+                            checked={component.isActive}
+                            onCheckedChange={() => toggleComponent(component.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div>
+                            <h4 className="font-medium">{component.name}</h4>
+                            <p className="text-sm text-gray-500 capitalize">{component.type.replace("-", " ")}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={component.isActive ? "default" : "secondary"}>
+                            {component.isActive ? (
+                              <>
+                                <Eye className="h-3 w-3 mr-1" />
+                                Active
+                              </>
+                            ) : (
+                              <>
+                                <EyeOff className="h-3 w-3 mr-1" />
+                                Inactive
+                              </>
+                            )}
+                          </Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDuplicateComponent(component.id)
+                            }}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteComponent(component.id)
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-900">{page.name}</h3>
-                        <p className="text-sm text-gray-500">{page.path}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Component Editor */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Component Editor</h3>
+                {selectedComponent ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <span>Editing: {selectedComponent.name}</span>
+                        <Badge variant="outline" className="capitalize">
+                          {selectedComponent.type.replace("-", " ")}
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Component Settings */}
+                      <div className="space-y-4">
+                        <h4 className="font-medium">Settings</h4>
+                        {Object.entries(selectedComponent.settings).map(([key, value]) => (
+                          <div key={key}>
+                            {renderFieldEditor(
+                              key,
+                              value,
+                              key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, " $1"),
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    </div>
-                    <Badge className="bg-green-100 text-green-800">Published</Badge>
-                  </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <Type className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">Select a component to edit its content</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          </TabsContent>
 
-                  <div className="space-y-3 mb-6">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Components:</span>
-                      <span className="font-medium">{page.components.length}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Active:</span>
-                      <span className="font-medium text-green-600">
-                        {page.components.filter((c: ComponentContent) => c.isActive).length}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Category:</span>
-                      <span className="font-medium capitalize">{page.category}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Last Modified:</span>
-                      <span className="font-medium">{page.lastModified}</span>
-                    </div>
-                  </div>
+          <TabsContent value="seo" className="space-y-6">
+            <SEOEditor pageId={selectedPage.id} currentSEO={selectedPage.seo} />
+          </TabsContent>
 
-                  <Button variant="outline" className="w-full" size="sm">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Manage Components
-                  </Button>
+          <TabsContent value="images" className="space-y-6">
+            <div className="grid lg:grid-cols-2 gap-6">
+              <ImageUpload pageId={selectedPage.id} />
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Current Images</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedPage.images.map((image) => (
+                      <div key={image.id} className="relative group">
+                        <img
+                          src={image.url || "/placeholder.svg"}
+                          alt={image.alt}
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => removeImage({ pageId: selectedPage.id, imageId: image.id })}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="mt-2">
+                          <p className="text-xs text-gray-600 truncate">{image.alt}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {selectedPage.images.length === 0 && (
+                      <div className="col-span-2 text-center py-8 text-gray-500">No images uploaded yet</div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
-            )
-          })
-        ) : (
-          <p>No pages found in this category</p>
-        )}
-      </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   )
 }

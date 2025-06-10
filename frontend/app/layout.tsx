@@ -2,22 +2,18 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import ClientLayout from "./ClientLayout"
+import Header from "@/components/header"
+import Footer from "@/components/footer"
+import LeadForm from "@/components/lead-form"
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "American Roofing | Houston's Most Trusted Roofing Professionals",
+  title: "Houston's Most Trusted Roofing Pros | American Roofing",
   description:
     "Professional roofing services in Houston. Get a free estimate for roof replacement, repair, and storm damage restoration. Licensed & insured.",
-  keywords: "roofing houston, roof repair, roof replacement, storm damage, american roofing",
-  openGraph: {
-    title: "American Roofing | Houston's Most Trusted Roofing Professionals",
-    description:
-      "Professional roofing services in Houston. Get a free estimate for roof replacement, repair, and storm damage restoration.",
-    images: ["/placeholder.svg?height=630&width=1200"],
-  },
-  generator: 'v0.dev'
+    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -26,9 +22,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body className={inter.className}>
-        <ClientLayout>{children}</ClientLayout>
+        <Header />
+        <main>{children}</main>
+        <Footer />
+        <LeadForm />
+        <Toaster />
       </body>
     </html>
   )

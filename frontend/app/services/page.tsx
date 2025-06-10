@@ -3,36 +3,19 @@ import { useContentStore } from "@/lib/store"
 import Hero from "@/components/hero"
 import Services from "@/components/services"
 import CTASection from "@/components/cta-section"
-import { useHydration } from "@/hooks/use-hydration"
 
 export default function ServicesPage() {
-  const isHydrated = useHydration()
   const { getPageContent } = useContentStore()
-
-  // Don't render content until hydrated
-  if (!isHydrated) {
-    return (
-      <div className="pt-20">
-        <DefaultServicesContent />
-      </div>
-    )
-  }
 
   const pageContent = getPageContent("services")
 
-  if (!pageContent) {
-    return (
-      <div className="pt-20">
-        <DefaultServicesContent />
-      </div>
-    )
-  }
+  if (!pageContent) return <div>Loading...</div>
 
-  const activeComponents = pageContent.components.filter((component: any) => component.isActive)
+  const activeComponents = pageContent.components.filter((component) => component.isActive)
 
   return (
     <div className="pt-20">
-      {activeComponents.map((component: any) => {
+      {activeComponents.map((component) => {
         switch (component.type) {
           case "hero":
             return <Hero key={component.id} content={component.settings} />
@@ -47,16 +30,6 @@ export default function ServicesPage() {
         }
       })}
     </div>
-  )
-}
-
-function DefaultServicesContent() {
-  return (
-    <>
-      <Hero />
-      <Services />
-      <CTASection />
-    </>
   )
 }
 
