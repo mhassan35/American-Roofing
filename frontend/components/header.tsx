@@ -71,18 +71,6 @@ export default function Header() {
               >
                 Free Inspections
               </Link>
-              <Link
-                href="/services/gutters"
-                className="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-500"
-              >
-                Gutter Services
-              </Link>
-              <Link
-                href="/services/insurance"
-                className="block px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-500"
-              >
-                Insurance Claims
-              </Link>
             </div>
           </div>
           <Link href="/about" className="text-gray-800 hover:text-orange-500 font-medium transition-colors">
