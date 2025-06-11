@@ -2,12 +2,11 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Star, Shield, Users, Phone, ArrowRight } from "lucide-react"
+import { motion } from "framer-motion"
+import { CheckCircle, Star, Shield, ArrowRight, Award, Home } from "lucide-react"
 import { useLeadFormStore } from "@/lib/store"
 
 interface HeroProps {
@@ -27,6 +26,11 @@ interface HeroProps {
 export default function Hero({ content }: HeroProps) {
   const { openLeadForm } = useLeadFormStore()
   const [email, setEmail] = useState("")
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    setIsVisible(true)
+  }, [])
 
   const title = content?.title || "Houston's Most Trusted Roofing Pros"
   const subtitle = content?.subtitle || "Request a fast, free quote in under 60 seconds."
@@ -55,118 +59,130 @@ export default function Hero({ content }: HeroProps) {
   }
 
   return (
-    <section className="relative w-full bg-gradient-to-br from-green-100 via-green-50 to-blue-50 pt-20 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
-          <div className="space-y-8">
-            <div className="space-y-6">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">{title}</h1>
-              <p className="text-xl text-gray-600 leading-relaxed">{subtitle}</p>
-            </div>
+    <section id="hero-section" className="relative pb-36 lg:pb-20 pt-24 overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 z-0">
+        <div className="w-full h-full bg-gradient-to-r from-brand-green/20 to-brand-orange/10" />
+      </div>
 
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap gap-3">
-              {trustIndicators.map((indicator, index) => (
-                <Badge key={index} variant="secondary" className="bg-white/80 text-gray-700 px-3 py-1">
-                  <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
-                  {indicator}
-                </Badge>
-              ))}
-            </div>
+      {/* Content Container */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 pt-2 pb-24 md:pb-2 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row items-center justify-center text-center lg:text-left lg:items-start gap-12">
+          {/* Text Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6 }}
+            className="flex-1 max-w-2xl"
+          >
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold leading-tight mb-4 text-gray-800">{title}</h1>
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6">{subtitle}</p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-center lg:justify-start">
               <Button
                 onClick={openLeadForm}
-                size="lg"
-                className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                className="btn-corporate bg-brand-orange hover:bg-brand-orange/90 text-white"
               >
                 {primaryButton}
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
-                size="lg"
-                className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg font-semibold rounded-lg"
+                className="btn-corporate border-brand-green text-brand-green hover:bg-brand-green/10"
               >
                 {secondaryButton}
               </Button>
             </div>
 
-            {/* Quick Contact */}
-            <div className="flex items-center space-x-4 pt-4">
-              <div className="flex items-center space-x-2">
-                <div className="bg-orange-500 p-2 rounded-full">
-                  <Phone className="h-4 w-4 text-white" />
+            {/* Trust Indicators */}
+            <div className="flex flex-wrap justify-center lg:justify-start items-center gap-x-6 gap-y-3">
+              {trustIndicators.map((indicator, index) => (
+                <div key={index} className="flex items-center">
+                  <div className="flat-icon flat-icon-sm mr-2 rounded-full">
+                    {index === 0 && <Shield className="h-4 w-4" />}
+                    {index === 1 && <Star className="h-4 w-4" />}
+                    {index === 2 && <Award className="h-4 w-4" />}
+                  </div>
+                  <span className="text-sm text-gray-700">{indicator}</span>
                 </div>
-                <span className="text-gray-700 font-medium">Call: (713) 555-1234</span>
-              </div>
-              <div className="text-gray-400">|</div>
-              <div className="text-sm text-gray-600">24/7 Emergency Service</div>
+              ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Right Form */}
-          <div className="lg:justify-self-end w-full max-w-md">
-            <Card className="bg-white shadow-2xl border-0">
-              <CardContent className="p-8">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={isVisible ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="flex-1 w-full max-w-md"
+          >
+            <Card className="bg-white shadow-2xl border-0 rounded-lg">
+              <CardContent className="p-6">
                 <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{formTitle}</h3>
-                  <p className="text-gray-600">{formSubtitle}</p>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">{formTitle}</h3>
+                  <p className="text-base text-gray-600">{formSubtitle}</p>
                 </div>
 
-                <form onSubmit={handleQuickSubmit} className="space-y-4">
-                  <Input
-                    type="email"
-                    placeholder="Enter your email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    required
-                  />
-                  <Button
-                    type="submit"
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 text-lg font-semibold rounded-lg"
-                  >
-                    {formButtonText}
-                  </Button>
-                </form>
-
-                <div className="mt-6 space-y-3">
+                <div className="space-y-3 mb-6">
                   {formFeatures.map((feature, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-600">{feature}</span>
+                    <div key={index} className="flex items-center">
+                      <div className="flat-icon-secondary rounded-full mr-3 p-1.5">
+                        <CheckCircle className="h-4 w-4" />
+                      </div>
+                      <span className="text-sm text-gray-700">{feature}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span>4.9/5 Rating</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Shield className="h-4 w-4 text-green-500" />
-                      <span>Licensed & Insured</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Users className="h-4 w-4 text-blue-500" />
-                      <span>3,000+ Customers</span>
-                    </div>
-                  </div>
-                </div>
+                <Button
+                  onClick={openLeadForm}
+                  className="w-full btn-corporate bg-brand-orange hover:bg-brand-orange/90 text-white"
+                >
+                  {formButtonText}
+                </Button>
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
         </div>
       </div>
 
-      {/* Background Elements */}
-      <div className="absolute top-0 right-0 w-1/3 h-full opacity-10">
-        <div className="w-full h-full bg-gradient-to-l from-orange-200 to-transparent"></div>
+      {/* Trust Bar */}
+      <div className="absolute bottom-0 left-0 right-0 bg-white py-3 shadow-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap justify-center md:justify-between items-center gap-4 text-center">
+            <div className="flex items-center">
+              <div className="flat-icon flat-icon-secondary mr-3 p-1.5">
+                <Award className="h-4 w-4" />
+              </div>
+              <span className="text-sm font-medium">BBB A+ Rating</span>
+            </div>
+            <div className="flex items-center">
+              <div className="flat-icon flat-icon-primary mr-3 p-1.5">
+                <Star className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-3 w-3 text-yellow-400 fill-yellow-400" />
+                  ))}
+                </div>
+                <span className="text-xs">4.9 (300+ Reviews)</span>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <div className="flat-icon flat-icon-secondary mr-3 p-1.5">
+                <Shield className="h-4 w-4" />
+              </div>
+              <span className="text-sm font-medium">GAF Certified Installer</span>
+            </div>
+            <div className="flex items-center">
+              <div className="flat-icon flat-icon-primary mr-3 p-1.5">
+                <Home className="h-4 w-4" />
+              </div>
+              <span className="text-sm font-medium">Local Houston-Owned</span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   )

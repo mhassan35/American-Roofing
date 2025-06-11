@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useContentStore } from "@/lib/store"
-import Hero from "@/components/hero"
 import AboutContent from "@/components/about-content"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -31,8 +30,6 @@ export default function AboutPage() {
 
   return (
     <main className="pt-20">
-      {getComponentContent("about-hero") && <Hero content={getComponentContent("about-hero")} />}
-
       {getComponentContent("about-content") && <AboutContent content={getComponentContent("about-content")} />}
     </main>
   )

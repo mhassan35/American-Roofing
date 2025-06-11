@@ -45,6 +45,7 @@
     "cmdk": "latest",
     "date-fns": "4.1.0",
     "embla-carousel-react": "latest",
+    "feather": "^0.0.6",
     "framer-motion": "latest",
     "immer": "latest",
     "input-otp": "latest",

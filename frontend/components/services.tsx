@@ -1,8 +1,9 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Home, Wrench, CloudLightning, Search, Droplets, FileText, ArrowRight } from "lucide-react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { motion } from "framer-motion"
+import { Home, Wrench, CloudLightning, Search, Droplets, FileText, ArrowRight } from "lucide-react"
 
 interface ServicesProps {
   content?: any
@@ -18,6 +19,8 @@ const iconMap = {
 }
 
 export default function Services({ content }: ServicesProps) {
+  const [isVisible, setIsVisible] = useState(false)
+
   const settings = content || {
     title: "Our Roofing Services",
     subtitle: "We provide comprehensive roofing solutions for homeowners in Houston and surrounding areas.",
@@ -61,50 +64,81 @@ export default function Services({ content }: ServicesProps) {
     ],
   }
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const section = document.getElementById("services-section")
+      if (section) {
+        const { top } = section.getBoundingClientRect()
+        if (top < window.innerHeight * 0.75) {
+          setIsVisible(true)
+        }
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    handleScroll()
+
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
+  }
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  }
+
   return (
-    <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">{settings.title}</h2>
-          <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">{settings.subtitle}</p>
+    <section id="services-section" className="bg-white px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-800">{settings.title}</h2>
+          <p className="mt-4 text-base text-gray-600 max-w-2xl mx-auto">{settings.subtitle}</p>
         </div>
 
-        {/* Services Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate={isVisible ? "show" : "hidden"}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
           {settings.services.map((service: any, index: number) => {
             const IconComponent = iconMap[service.icon as keyof typeof iconMap] || Home
 
             return (
-              <Card
+              <motion.div
                 key={index}
-                className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-green-50 to-blue-50"
+                variants={item}
+                className="bg-white rounded-lg shadow hover:shadow-lg transition duration-300"
               >
-                <CardContent className="p-8 text-center h-full flex flex-col">
-                  {/* Icon */}
-                  <div className="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <IconComponent className="w-8 h-8 text-orange-500" />
+                <div className="h-40 flex items-center justify-center bg-gradient-to-r from-brand-green/10 to-brand-orange/10 rounded-t-lg">
+                  <div className="p-4 bg-white rounded-full shadow">
+                    <IconComponent className="h-8 w-8 text-brand-orange" />
                   </div>
-
-                  {/* Content */}
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">{service.title}</h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed flex-grow">{service.description}</p>
-
-                  {/* Link */}
+                </div>
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">{service.title}</h3>
+                  <p className="text-sm text-gray-600 mb-4">{service.description}</p>
                   {service.link && (
                     <Link
                       href={service.link}
-                      className="inline-flex items-center text-orange-500 hover:text-orange-600 font-semibold transition-colors"
+                      className="inline-flex items-center text-sm text-brand-orange hover:text-brand-orange/80 font-medium transition-colors"
                     >
                       Learn More
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      <ArrowRight className="ml-1 h-4 w-4" />
                     </Link>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </motion.div>
             )
           })}
-        </div>
+        </motion.div>
       </div>
     </section>
   )

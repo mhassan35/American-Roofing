@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { useContentStore } from "@/lib/store"
-import Hero from "@/components/hero"
 import ContactForm from "@/components/contact-form"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -45,8 +44,6 @@ export default function ContactPage() {
 
   return (
     <main className="pt-20">
-      {getComponentContent("contact-hero") && <Hero content={getComponentContent("contact-hero")} />}
-
       {getComponentContent("contact-form") && <ContactForm content={getComponentContent("contact-form")} />}
     </main>
   )

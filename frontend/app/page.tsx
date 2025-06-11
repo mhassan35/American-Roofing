@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react"
 import { useContentStore } from "@/lib/store"
 import Hero from "@/components/hero"
-import TrustBadges from "@/components/trust-badges"
 import Services from "@/components/services"
 import WhyChooseUs from "@/components/why-choose-us"
 import Testimonials from "@/components/testimonials"
 import TrustSection from "@/components/trust-section"
 import Gallery from "@/components/gallery"
+
 import { Skeleton } from "@/components/ui/skeleton"
+import CTASection from "@/components/cta-section"
 
 export default function HomePage() {
   const [isClient, setIsClient] = useState(false)
@@ -34,23 +35,24 @@ export default function HomePage() {
     return component?.isActive ? component.settings : null
   }
 
+  // Ensure that content is not null before passing it to the Hero component
+  const heroContent = getComponentContent("home-hero")
+  if (!heroContent) {
+    return <PageSkeleton /> // Optionally return a skeleton or an error message if content is missing
+  }
+
   return (
     <main>
-      {getComponentContent("home-hero") && <Hero content={getComponentContent("home-hero")} />}
-
-      {getComponentContent("home-trust-badges") && <TrustBadges content={getComponentContent("home-trust-badges")} />}
-
+      <Hero content={heroContent} />
+      
+      {/* Your other components */}
       {getComponentContent("home-services") && <Services content={getComponentContent("home-services")} />}
-
       {getComponentContent("home-why-choose") && <WhyChooseUs content={getComponentContent("home-why-choose")} />}
-
       {getComponentContent("home-testimonials") && <Testimonials content={getComponentContent("home-testimonials")} />}
-
-      {getComponentContent("home-trust-section") && (
-        <TrustSection content={getComponentContent("home-trust-section")} />
-      )}
-
+      {getComponentContent("home-trust-section") && <TrustSection content={getComponentContent("home-trust-section")} />}
       {getComponentContent("home-gallery") && <Gallery content={getComponentContent("home-gallery")} />}
+      <CTASection />
+
     </main>
   )
 }

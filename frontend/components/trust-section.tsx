@@ -35,35 +35,34 @@ export default function TrustSection({ content }: TrustSectionProps) {
   }
 
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">{settings.title}</h2>
-        </div>
-
-        {/* Certifications */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-16">
-          {settings.certifications.map((cert: any, index: number) => {
-            const IconComponent = iconMap[cert.icon as keyof typeof iconMap] || Shield
-
-            return (
-              <div key={index} className="text-center">
-                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <IconComponent className="w-8 h-8 text-white" />
+    <section className="corporate-section bg-white">
+      <div className="corporate-container">
+        {/* Trust Badges */}
+        <div className="mt-12 pt-8 border-t border-gray-100">
+          <h3 className="text-center text-lg font-semibold mb-6 text-gray-800">{settings.title}</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {settings.certifications.map((badge: any, index: number) => {
+              const IconComponent = iconMap[badge.icon as keyof typeof iconMap] || Shield
+              return (
+                <div key={index} className="flex flex-col items-center justify-center bg-gray-50 p-3 rounded-md">
+                  <div
+                    className={`p-2 rounded-md mb-2 ${index % 2 === 0 ? "bg-brand-green/10" : "bg-brand-orange/10"}`}
+                  >
+                    <IconComponent className="h-4 w-4 text-brand-green" />
+                  </div>
+                  <span className="text-xs text-center text-gray-700">{badge.name}</span>
                 </div>
-                <p className="text-sm font-semibold text-gray-800">{cert.name}</p>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-          {settings.stats.map((stat: any, index: number) => (
-            <div key={index} className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-orange-500 mb-2">{stat.number}</div>
-              <p className="text-gray-600 font-medium">{stat.label}</p>
+        <div className="mt-12 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {settings.stats.map((stat: any, idx: number) => (
+            <div key={idx} className="bg-gray-50 p-4 rounded-md text-center">
+              <div className="text-2xl font-bold text-brand-orange mb-1">{stat.number}</div>
+              <div className="text-xs text-gray-600">{stat.label}</div>
             </div>
           ))}
         </div>
