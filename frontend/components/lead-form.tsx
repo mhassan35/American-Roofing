@@ -15,7 +15,6 @@ import {
   Building,
   Clock,
   MapPin,
-  Camera,
   User,
   Phone,
   Mail,
@@ -28,7 +27,6 @@ import {
   Send,
   ChevronLeft,
   ChevronRight,
-  Upload,
   FileText,
   Clipboard,
   Wrench,
@@ -72,7 +70,6 @@ export default function LeadForm() {
     urgency: "",
     address: "",
     zipCode: "",
-    photo: null as File | null,
     name: "",
     phone: "",
     email: "",
@@ -81,7 +78,7 @@ export default function LeadForm() {
 
   // Update progress bar
   useEffect(() => {
-    const totalSteps = 6
+    const totalSteps = 5
     setProgress((step / totalSteps) * 100)
   }, [step])
 
@@ -103,24 +100,13 @@ export default function LeadForm() {
   const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (formData.address && formData.zipCode) {
-      nextStep()
+      setStep(5)
     } else {
       toast({
         title: "Please fill in all fields",
         description: "Address and zip code are required",
         variant: "destructive",
       })
-    }
-  }
-
-  const handlePhotoSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    nextStep()
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFormData({ ...formData, photo: e.target.files[0] })
     }
   }
 
@@ -144,16 +130,6 @@ export default function LeadForm() {
       const firstName = nameParts[0] || ""
       const lastName = nameParts.slice(1).join(" ") || ""
 
-      // Convert file to data URL if exists
-      let photoUrl = ""
-      if (formData.photo instanceof File) {
-        photoUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader()
-          reader.onloadend = () => resolve(reader.result as string)
-          reader.readAsDataURL(formData.photo!)
-        })
-      }
-
       // Prepare data for both local store and API
       const leadData = {
         firstName,
@@ -167,7 +143,6 @@ export default function LeadForm() {
         propertyType: formData.propertyType,
         address: formData.address,
         zipCode: formData.zipCode,
-        photo: photoUrl,
       }
 
       // Try to send data to backend API (optional)
@@ -209,7 +184,6 @@ export default function LeadForm() {
           urgency: "",
           address: "",
           zipCode: "",
-          photo: null,
           name: "",
           phone: "",
           email: "",
@@ -462,77 +436,8 @@ export default function LeadForm() {
                     </div>
                   )}
 
-                  {/* Step 5: Photo Upload (Optional) */}
+                  {/* Step 5: Contact Information */}
                   {step === 5 && (
-                    <div>
-                      <div className="flex items-center mb-2">
-                        <Camera className="h-4 w-4 text-orange-500 mr-2" />
-                        <h3 className="text-base font-semibold text-gray-800">
-                          Upload a photo of your roof (Optional)
-                        </h3>
-                      </div>
-                      <p className="text-xs text-gray-600 mb-4">This helps us provide a more accurate estimate</p>
-
-                      <form onSubmit={handlePhotoSubmit}>
-                        <div className="border-2 border-dashed border-green-500/30 rounded-md p-6 text-center">
-                          <div className="mb-3">
-                            <Upload className="h-8 w-8 text-green-500 mx-auto" />
-                          </div>
-
-                          {formData.photo ? (
-                            <div className="mb-3">
-                              <p className="text-sm text-green-500 font-medium">Photo selected</p>
-                              <p className="text-xs text-gray-500">{formData.photo.name}</p>
-                            </div>
-                          ) : (
-                            <p className="text-xs text-gray-500 mb-3">Drag and drop a photo here, or click to select</p>
-                          )}
-
-                          <input
-                            type="file"
-                            id="photo"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleFileChange}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="text-xs py-1.5 px-3 border-green-500 text-green-500 hover:bg-green-50"
-                            onClick={() => document.getElementById("photo")?.click()}
-                          >
-                            <Camera className="h-3 w-3 mr-1" />
-                            Select Photo
-                          </Button>
-                        </div>
-
-                        <div className="mt-6 flex justify-between">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="text-sm py-1.5 px-3 border-green-500 text-green-500 hover:bg-green-50"
-                            onClick={prevStep}
-                          >
-                            <ChevronLeft className="h-3 w-3 mr-1" />
-                            Back
-                          </Button>
-                          <Button
-                            type="submit"
-                            size="sm"
-                            className="bg-orange-500 hover:bg-orange-600 text-white text-sm py-1.5 px-3"
-                          >
-                            {formData.photo ? "Continue" : "Skip This Step"}
-                            <ChevronRight className="h-3 w-3 ml-1" />
-                          </Button>
-                        </div>
-                      </form>
-                    </div>
-                  )}
-
-                  {/* Step 6: Contact Information */}
-                  {step === 6 && (
                     <div>
                       <div className="flex items-center mb-4">
                         <User className="h-4 w-4 text-orange-500 mr-2" />
@@ -617,7 +522,7 @@ export default function LeadForm() {
                             variant="outline"
                             size="sm"
                             className="text-sm py-1.5 px-3 border-green-500 text-green-500 hover:bg-green-50"
-                            onClick={prevStep}
+                            onClick={() => setStep(4)}
                             disabled={isSubmitting}
                           >
                             <ChevronLeft className="h-3 w-3 mr-1" />
