@@ -1,19 +1,33 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
 import "./globals.css"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
-import LeadForm from "@/components/lead-form"
-import { Toaster } from "@/components/ui/toaster"
+import ClientLayout from "./ClientLayout"
 
-const inter = Inter({ subsets: ["latin"] })
+
 
 export const metadata: Metadata = {
-  title: "Houston's Most Trusted Roofing Pros | American Roofing",
+  title: "American Roofing | Houston's Most Trusted Roofing Pros",
   description:
-    "Professional roofing services in Houston. Get a free estimate for roof replacement, repair, and storm damage restoration. Licensed & insured.",
-    generator: 'v0.dev'
+    "American Roofing provides premium roofing services in Houston including roof replacement, repair, and storm damage restoration. Get a free quote in 60 seconds.",
+  keywords:
+    "roofing, Houston roofing, roof repair Houston, roof replacement, storm damage, roofing contractor",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://americanroofinghouston.com",
+    title: "American Roofing | Houston's Most Trusted Roofing Pros",
+    description:
+      "Premium roofing services in Houston. Get a free quote in 60 seconds.",
+    siteName: "American Roofing",
+    images: [
+      {
+        url: "/images/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "American Roofing - Houston's Most Trusted Roofing Pros",
+      },
+    ],
+  },
 }
 
 export default function RootLayout({
@@ -22,13 +36,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <main>{children}</main>
-        <Footer />
-        <LeadForm />
-        <Toaster />
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-brand-beige`">
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   )
 }
+
+
+
+
+

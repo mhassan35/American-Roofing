@@ -1,6 +1,6 @@
 "use client"
 
-import { useState,useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useLeadStore, type Lead } from "@/lib/store"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,40 +10,51 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Filter, Download, Eye, Phone, Mail, MapPin, Clock, Home, AlertCircle, Trash2 } from "lucide-react"
 
 export default function LeadsManagement() {
-
-   useEffect(() => {
-  fetch('http://localhost:8080/api/get-all-leads')
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! Status: ${res.status}`)
-      }
-      return res.json()
-    })
-    .then((data) => {
-      setLeads(data)
-    })
-    .catch((err) => {
-      console.error('Error fetching leads:', err)
-    })
-}, [])
-
-
-  const {leads,updateLeadStatus,deleteLead,getStats,setLeads } = useLeadStore()
+  const { leads, updateLeadStatus, deleteLead, getStats, setLeads } = useLeadStore()
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Move fetchLeads function outside useEffect
+  const fetchLeads = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch("http://localhost:8080/api/get-all-leads")
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`)
+      }
+      const data = await response.json()
+      setLeads(data)
+    } catch (err) {
+      console.error("Error fetching leads:", err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    // Initial fetch
+    fetchLeads()
+
+    // Set up polling to fetch new data every 30 seconds
+    const interval = setInterval(fetchLeads, 30000)
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval)
+  }, [setLeads])
 
   const stats = getStats()
 
   // Filter leads based on search term and status filter
   const filteredLeads = leads.filter((lead) => {
     const matchesSearch =
-      searchTerm === '' ||
+      searchTerm === "" ||
       `${lead.firstName} ${lead.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.phone.includes(searchTerm)
 
-    const matchesStatus = statusFilter === 'all' || lead.status === statusFilter
+    const matchesStatus = statusFilter === "all" || lead.status === statusFilter
 
     return matchesSearch && matchesStatus
   })
@@ -139,13 +150,22 @@ export default function LeadsManagement() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Lead Management</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900">Lead Management</h1>
+            {isLoading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>}
+          </div>
           <p className="text-gray-600">Manage and track your roofing leads from the website</p>
         </div>
-        <Button variant="outline" className="mt-4 sm:mt-0" onClick={exportLeads}>
-          <Download className="h-4 w-4 mr-2" />
-          Export Leads
-        </Button>
+        <div className="flex gap-2 mt-4 sm:mt-0">
+          <Button variant="outline" onClick={fetchLeads} disabled={isLoading}>
+            <Search className="h-4 w-4 mr-2" />
+            {isLoading ? "Refreshing..." : "Refresh"}
+          </Button>
+          <Button variant="outline" onClick={exportLeads}>
+            <Download className="h-4 w-4 mr-2" />
+            Export Leads
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -230,7 +250,7 @@ export default function LeadsManagement() {
                   <th className="text-left p-4 font-medium text-gray-900">Service</th>
                   <th className="text-left p-4 font-medium text-gray-900">Location</th>
                   <th className="text-left p-4 font-medium text-gray-900">Status</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Date</th>
+                  {/* <th className="text-left p-4 font-medium text-gray-900">Date</th> */}
                   <th className="text-left p-4 font-medium text-gray-900">Actions</th>
                 </tr>
               </thead>
@@ -306,24 +326,24 @@ export default function LeadsManagement() {
                           </SelectContent>
                         </Select>
                       </td>
-                      <td className="p-4">
+                      {/* <td className="p-4">
                         <span className="text-sm text-gray-500">{lead.date}</span>
-                      </td>
+                      </td> */}
                       <td className="p-4">
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline" onClick={() => setSelectedLead(lead)}>
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" asChild>
+                          {/* <Button size="sm" variant="outline" asChild>
                             <a href={`tel:${lead.phone}`}>
                               <Phone className="h-4 w-4" />
                             </a>
-                          </Button>
-                          <Button size="sm" variant="outline" asChild>
+                          </Button> */}
+                          {/* <Button size="sm" variant="outline" asChild>
                             <a href={`mailto:${lead.email}`}>
                               <Mail className="h-4 w-4" />
                             </a>
-                          </Button>
+                          </Button> */}
                           <Button
                             size="sm"
                             variant="outline"
@@ -403,8 +423,8 @@ export default function LeadsManagement() {
                   </div>
                 )}
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Date</label>
-                  <p className="text-gray-900">{selectedLead.date}</p>
+                  {/* <label className="text-sm font-medium text-gray-700">Date</label> */}
+                  {/* <p className="text-gray-900">{selectedLead.date}</p> */}
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Status</label>

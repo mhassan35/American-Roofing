@@ -9,6 +9,12 @@ import ServiceProcess from "@/components/service-process"
 import ServiceFAQs from "@/components/service-faqs"
 import { Skeleton } from "@/components/ui/skeleton"
 
+// Define types to match your component props
+type BenefitsContent = {
+  title?: string
+  benefits?: { title: string; description: string }[]
+}
+
 export default function RoofRepairPage() {
   const [isClient, setIsClient] = useState(false)
   const { getPageContent } = useContentStore()
@@ -32,17 +38,24 @@ export default function RoofRepairPage() {
     return component?.isActive ? component.settings : null
   }
 
+  // Get content with proper type casting
+  const heroContent = getComponentContent("repair-hero")
+  const contentSection = getComponentContent("repair-content")
+  const benefitsContent = getComponentContent("repair-benefits") as BenefitsContent | null
+  const processContent = getComponentContent("repair-process")
+  const faqsContent = getComponentContent("repair-faqs")
+
   return (
     <main className="pt-20">
-      {getComponentContent("repair-hero") && <Hero content={getComponentContent("repair-hero")} />}
+      {heroContent && <Hero content={heroContent} />}
 
-      {getComponentContent("repair-content") && <ServiceContent content={getComponentContent("repair-content")} />}
+      {contentSection && <ServiceContent content={contentSection} />}
 
-      {getComponentContent("repair-benefits") && <ServiceBenefits content={getComponentContent("repair-benefits")} />}
+      {benefitsContent && <ServiceBenefits content={benefitsContent} />}
 
-      {getComponentContent("repair-process") && <ServiceProcess content={getComponentContent("repair-process")} />}
+      {processContent && <ServiceProcess content={processContent} />}
 
-      {getComponentContent("repair-faqs") && <ServiceFAQs content={getComponentContent("repair-faqs")} />}
+      {faqsContent && <ServiceFAQs content={faqsContent} />}
     </main>
   )
 }

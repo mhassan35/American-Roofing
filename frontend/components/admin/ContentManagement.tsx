@@ -283,28 +283,6 @@ export default function ContentManagement() {
           </TabsList>
 
           <TabsContent value="components" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Page Components</h2>
-              <Select onValueChange={handleAddComponent}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Add Component" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="hero">Hero Section</SelectItem>
-                  <SelectItem value="services">Services</SelectItem>
-                  <SelectItem value="why-choose">Why Choose Us</SelectItem>
-                  <SelectItem value="testimonials">Testimonials</SelectItem>
-                  <SelectItem value="gallery">Gallery</SelectItem>
-                  <SelectItem value="trust-badges">Trust Badges</SelectItem>
-                  <SelectItem value="trust-section">Trust Section</SelectItem>
-                  <SelectItem value="service-layout">Service Content</SelectItem>
-                  <SelectItem value="service-benefits">Service Benefits</SelectItem>
-                  <SelectItem value="service-process">Service Process</SelectItem>
-                  <SelectItem value="service-faqs">Service FAQs</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="grid lg:grid-cols-2 gap-6">
               {/* Components List */}
               <div className="space-y-4">

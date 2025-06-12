@@ -23,8 +23,8 @@ export default function ServicesPage() {
             return <Services key={component.id} content={component.settings} />
           case "service-process":
             return <ProcessSection key={component.id} content={component.settings} />
-          case "cta":
-            return <CTASection key={component.id} content={component.settings} />
+          // case "cta":
+          //   return <CTASection key={component.id} content={component.settings} />
           default:
             return null
         }

@@ -112,7 +112,7 @@ export default function Testimonials({ content }: TestimonialsProps) {
   }, [visibleReviews])
 
   return (
-    <section className="corporate-section pt-24 bg-white">
+    <section className="corporate-section bg-white">
       <div className="corporate-container">
         {/* Header */}
         <div className="text-center mb-8">
@@ -140,7 +140,13 @@ export default function Testimonials({ content }: TestimonialsProps) {
           <div className="flex flex-wrap justify-center gap-2">
             {settings.platforms.map((platform: any, idx: number) => (
               <div key={idx} className="flex items-center bg-white px-3 py-1 rounded border border-gray-200 text-xs">
-                <Image src="/placeholder.svg" alt={platform.name} width={20} height={20} className="mr-1" />
+                <Image
+                  src="/placeholder.svg"
+                  alt={`${platform.name} platform logo`}
+                  width={20}
+                  height={20}
+                  className="mr-1"
+                />
                 <span>
                   {platform.rating} on {platform.name}
                 </span>
@@ -169,8 +175,12 @@ export default function Testimonials({ content }: TestimonialsProps) {
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${currentIndex * (100 / visibleReviews)}%)` }}
             >
-              {settings.reviews.map((review: any) => (
-                <div key={review.id} className="flex-shrink-0 px-2" style={{ width: `${100 / visibleReviews}%` }}>
+              {settings.reviews.map((review: any, index: number) => (
+                <div
+                  key={review.id || `review-${index}`}
+                  className="flex-shrink-0 px-2"
+                  style={{ width: `${100 / visibleReviews}%` }}
+                >
                   <div className="bg-white rounded-md shadow-sm border border-gray-100 p-4 h-full flex flex-col">
                     {/* Header */}
                     <div className="flex justify-between items-start mb-3">
@@ -187,7 +197,13 @@ export default function Testimonials({ content }: TestimonialsProps) {
                         </div>
                       </div>
                       <div className="flex items-center text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
-                        <Image src="/placeholder.svg" alt={review.source} width={14} height={14} className="mr-1" />
+                        <Image
+                          src="/placeholder.svg"
+                          alt={`${review.source || "Review platform"} logo`}
+                          width={14}
+                          height={14}
+                          className="mr-1"
+                        />
                         {review.source}
                       </div>
                     </div>
@@ -238,7 +254,7 @@ export default function Testimonials({ content }: TestimonialsProps) {
         <div className="mt-6 flex justify-center">
           {settings.reviews.map((_: any, index: number) => (
             <button
-              key={index}
+              key={`dot-${index}`}
               onClick={() => setCurrentIndex(index)}
               className={`h-2 w-2 rounded-full mx-1 transition-colors ${
                 index >= currentIndex && index < currentIndex + visibleReviews ? "bg-brand-orange" : "bg-gray-300"
