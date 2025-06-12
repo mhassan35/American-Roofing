@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useContentStore } from "@/lib/store"
-import Hero from "@/components/hero"
 import ServiceContent from "@/components/service-content"
 import ServiceBenefits from "@/components/service-benefits"
 import ServiceProcess from "@/components/service-process"
@@ -13,6 +12,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 type BenefitsContent = {
   title?: string
   benefits?: { title: string; description: string }[]
+}
+
+type PageHeaderContent = {
+  title?: string
+  subtitle?: string
 }
 
 export default function RoofRepairPage() {
@@ -38,8 +42,8 @@ export default function RoofRepairPage() {
     return component?.isActive ? component.settings : null
   }
 
-  // Get content with proper type casting
-  const heroContent = getComponentContent("repair-hero")
+  // Get content with proper type casting - using the correct component ID
+  const headerContent = getComponentContent("repair-hero") as PageHeaderContent | null
   const contentSection = getComponentContent("repair-content")
   const benefitsContent = getComponentContent("repair-benefits") as BenefitsContent | null
   const processContent = getComponentContent("repair-process")
@@ -47,7 +51,17 @@ export default function RoofRepairPage() {
 
   return (
     <main className="pt-20">
-      {heroContent && <Hero content={heroContent} />}
+      {/* Page Header */}
+      <section className="py-16 bg-gradient-to-br from-green-100 via-green-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+            {headerContent?.title || "Professional Roof Repair Services"}
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto">
+            {headerContent?.subtitle || "Expert roof repair solutions to restore your home's protection and value"}
+          </p>
+        </div>
+      </section>
 
       {contentSection && <ServiceContent content={contentSection} />}
 
@@ -63,22 +77,13 @@ export default function RoofRepairPage() {
 function PageSkeleton() {
   return (
     <main className="pt-20">
-      {/* Hero Skeleton */}
-      <div className="relative w-full bg-gradient-to-br from-green-100 via-green-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <Skeleton className="h-16 w-full max-w-2xl" />
-              <Skeleton className="h-8 w-full max-w-xl" />
-              <div className="flex gap-4">
-                <Skeleton className="h-12 w-40" />
-                <Skeleton className="h-12 w-32" />
-              </div>
-            </div>
-            <Skeleton className="h-96 w-full max-w-md justify-self-end" />
-          </div>
+      {/* Header Skeleton */}
+      <section className="py-16 bg-gradient-to-br from-green-100 via-green-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Skeleton className="h-16 w-3/4 mx-auto mb-6" />
+          <Skeleton className="h-8 w-full max-w-4xl mx-auto" />
         </div>
-      </div>
+      </section>
 
       {/* Content Skeleton */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

@@ -2,12 +2,22 @@
 
 import { useEffect, useState } from "react"
 import { useContentStore } from "@/lib/store"
-import Hero from "@/components/hero"
 import ServiceContent from "@/components/service-content"
 import ServiceBenefits from "@/components/service-benefits"
 import ServiceProcess from "@/components/service-process"
 import ServiceFAQs from "@/components/service-faqs"
 import { Skeleton } from "@/components/ui/skeleton"
+
+// Define types to match your component props
+type BenefitsContent = {
+  title?: string
+  benefits?: { title: string; description: string }[]
+}
+
+type PageHeaderContent = {
+  title?: string
+  subtitle?: string
+}
 
 export default function RoofReplacementPage() {
   const [isClient, setIsClient] = useState(false)
@@ -32,23 +42,35 @@ export default function RoofReplacementPage() {
     return component?.isActive ? component.settings : null
   }
 
+  // Get content with proper type casting - using the correct component ID
+  const headerContent = getComponentContent("replacement-hero") as PageHeaderContent | null
+  const contentSection = getComponentContent("replacement-content")
+  const benefitsContent = getComponentContent("replacement-benefits") as BenefitsContent | null
+  const processContent = getComponentContent("replacement-process")
+  const faqsContent = getComponentContent("replacement-faqs")
+
   return (
     <main className="pt-20">
-      {getComponentContent("replacement-hero") && <Hero content={getComponentContent("replacement-hero")} />}
+      {/* Page Header */}
+      <section className="py-16 bg-gradient-to-br from-green-100 via-green-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+            {headerContent?.title || "Complete Roof Replacement Services"}
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto">
+            {headerContent?.subtitle ||
+              "Transform your home with a brand new roof installation from certified professionals"}
+          </p>
+        </div>
+      </section>
 
-      {getComponentContent("replacement-content") && (
-        <ServiceContent content={getComponentContent("replacement-content")} />
-      )}
+      {contentSection && <ServiceContent content={contentSection} />}
 
-      {getComponentContent("replacement-benefits") && (
-        <ServiceBenefits content={getComponentContent("replacement-benefits")} />
-      )}
+      {benefitsContent && <ServiceBenefits content={benefitsContent} />}
 
-      {getComponentContent("replacement-process") && (
-        <ServiceProcess content={getComponentContent("replacement-process")} />
-      )}
+      {processContent && <ServiceProcess content={processContent} />}
 
-      {getComponentContent("replacement-faqs") && <ServiceFAQs content={getComponentContent("replacement-faqs")} />}
+      {faqsContent && <ServiceFAQs content={faqsContent} />}
     </main>
   )
 }
@@ -56,22 +78,13 @@ export default function RoofReplacementPage() {
 function PageSkeleton() {
   return (
     <main className="pt-20">
-      {/* Hero Skeleton */}
-      <div className="relative w-full bg-gradient-to-br from-green-100 via-green-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <Skeleton className="h-16 w-full max-w-2xl" />
-              <Skeleton className="h-8 w-full max-w-xl" />
-              <div className="flex gap-4">
-                <Skeleton className="h-12 w-40" />
-                <Skeleton className="h-12 w-32" />
-              </div>
-            </div>
-            <Skeleton className="h-96 w-full max-w-md justify-self-end" />
-          </div>
+      {/* Header Skeleton */}
+      <section className="py-16 bg-gradient-to-br from-green-100 via-green-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Skeleton className="h-16 w-3/4 mx-auto mb-6" />
+          <Skeleton className="h-8 w-full max-w-4xl mx-auto" />
         </div>
-      </div>
+      </section>
 
       {/* Content Skeleton */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

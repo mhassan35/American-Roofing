@@ -52,53 +52,54 @@ export default function Sidebar({ navigation }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-2">
-          {navigation.map((item) => {
-            const isActive = activeTab === item.id
-            const badgeCount = item.id === "leads" ? stats.new : 0
+          {navigation
+            .filter((item) => item.id !== "services" && item.id !== "settings")
+            .map((item) => {
+              const isActive = activeTab === item.id
+              const badgeCount = item.id === "leads" ? stats.new : 0
 
-            return (
-              <Button
-                key={item.id}
-                variant={isActive ? "default" : "ghost"}
-                className={cn(
-                  "w-full justify-start relative group",
-                  isActive ? "bg-orange-500 text-white hover:bg-orange-600" : "text-gray-700 hover:bg-gray-100",
-                  !sidebarOpen && "lg:justify-center lg:px-2",
-                )}
-                onClick={() => {
-                  setActiveTab(item.id)
-                  if (isMobile) toggleSidebar()
-                }}
-              >
-                <item.icon className={cn("h-5 w-5", sidebarOpen ? "mr-3" : "mr-0")} />
-                {sidebarOpen && (
-                  <>
-                    <span className="truncate">{item.name}</span>
-                    {badgeCount > 0 && (
-                      <Badge
-                        className={cn(
-                          "ml-auto h-5 w-5 rounded-full text-xs flex items-center justify-center",
-                          isActive ? "bg-white text-orange-500" : "bg-red-500 text-white",
-                        )}
-                      >
-                        {badgeCount}
-                      </Badge>
-                    )}
-                  </>
-                )}
+              return (
+                <Button
+                  key={item.id}
+                  variant={isActive ? "default" : "ghost"}
+                  className={cn(
+                    "w-full justify-start relative group",
+                    isActive ? "bg-orange-500 text-white hover:bg-orange-600" : "text-gray-700 hover:bg-gray-100",
+                    !sidebarOpen && "lg:justify-center lg:px-2",
+                  )}
+                  onClick={() => {
+                    setActiveTab(item.id)
+                    if (isMobile) toggleSidebar()
+                  }}
+                >
+                  <item.icon className={cn("h-5 w-5", sidebarOpen ? "mr-3" : "mr-0")} />
+                  {sidebarOpen && (
+                    <>
+                      <span className="truncate">{item.name}</span>
+                      {badgeCount > 0 && (
+                        <Badge
+                          className={cn(
+                            "ml-auto h-5 w-5 rounded-full text-xs flex items-center justify-center",
+                            isActive ? "bg-white text-orange-500" : "bg-red-500 text-white",
+                          )}
+                        >
+                          {badgeCount}
+                        </Badge>
+                      )}
+                    </>
+                  )}
 
-                {/* Tooltip for collapsed state */}
-                {!sidebarOpen && !isMobile && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-                    {item.name}
-                    {badgeCount > 0 && (
-                      <span className="ml-2 bg-red-500 text-white rounded-full px-1 text-xs">{badgeCount}</span>
-                    )}
-                  </div>
-                )}
-              </Button>
-            )
-          })}
+                  {!sidebarOpen && !isMobile && (
+                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                      {item.name}
+                      {badgeCount > 0 && (
+                        <span className="ml-2 bg-red-500 text-white rounded-full px-1 text-xs">{badgeCount}</span>
+                      )}
+                    </div>
+                  )}
+                </Button>
+              )
+            })}
         </nav>
 
         {/* Footer */}

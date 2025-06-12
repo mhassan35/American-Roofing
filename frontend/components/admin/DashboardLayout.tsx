@@ -8,8 +8,8 @@ import DashboardOverview from "./DashboardOverview"
 import LeadsManagement from "./LeadsManagement"
 import ContentManagement from "./ContentManagement"
 import ImageManagement from "./ImageManagement"
-import SettingsPanel from "./SettingsPanel"
-import ServicesManagement from "./ServicesManagement"
+// import SettingsPanel from "./SettingsPanel"
+// import ServicesManagement from "./ServicesManagement"
 
 const navigation = [
   { id: "dashboard", name: "Dashboard", icon: LayoutDashboard },
@@ -36,12 +36,8 @@ export default function DashboardLayout() {
         return <LeadsManagement />
       case "content":
         return <ContentManagement />
-      case "services":
-        return <ServicesManagement />
       case "images":
         return <ImageManagement />
-      case "settings":
-        return <SettingsPanel />
       default:
         return <DashboardOverview />
     }
