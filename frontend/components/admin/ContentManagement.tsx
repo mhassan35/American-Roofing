@@ -14,6 +14,7 @@ import { Edit2, Trash2, Save, Copy, Settings, ImageIcon, Type, Layout, Eye, EyeO
 import { toast } from "@/hooks/use-toast"
 import SEOEditor from "./SEOEditor"
 import ImageUpload from "./ImageUpload"
+import Link from "next/link"
 
 export default function ContentManagement() {
   const {
@@ -350,8 +351,14 @@ export default function ContentManagement() {
               </div>
 
               {/* Component Editor */}
+              
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Component Editor</h3>
+                <h3 className="text-lg flex font-medium">Component Editor</h3>
+                <Link href='/' className="flex" >
+                <Button variant="outline">
+                  Live Preview
+                </Button>
+                </Link>
                 {selectedComponent ? (
                   <Card>
                     <CardHeader>
