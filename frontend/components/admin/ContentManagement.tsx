@@ -354,7 +354,7 @@ export default function ContentManagement() {
               
               <div className="space-y-4">
                 <h3 className="text-lg flex font-medium">Component Editor</h3>
-                <Link href='/' className="flex" >
+                <Link href='/'>
                 <Button variant="outline">
                   Live Preview
                 </Button>
