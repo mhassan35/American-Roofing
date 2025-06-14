@@ -54,14 +54,6 @@ const leadSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  photo: {
-    type: String, // Base64 encoded image or URL
-    default: ''
-  },
-  status: {
-    type: String,
-    default: 'new'
-  },
   createdAt: {
     type: Date,
     default: Date.now

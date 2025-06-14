@@ -31,7 +31,6 @@ app.get('/', (req, res) => {
 const startServer = async () => {
   try {
     await connectDB();
-    console.log('MongoDB connected');
 
     app.use('/api', userRoutes);
 
