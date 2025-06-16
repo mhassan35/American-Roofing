@@ -8,8 +8,7 @@ import DashboardOverview from "./DashboardOverview"
 import LeadsManagement from "./LeadsManagement"
 import ContentManagement from "./ContentManagement"
 import ImageManagement from "./real-time-image-dashboard"
-// import SettingsPanel from "./SettingsPanel"
-// import ServicesManagement from "./ServicesManagement"
+
 
 const navigation = [
   { id: "dashboard", name: "Dashboard", icon: LayoutDashboard },

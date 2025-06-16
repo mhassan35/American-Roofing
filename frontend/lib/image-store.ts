@@ -3,7 +3,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
-// Enhanced image interface with usage tracking
 export interface ManagedImage {
   id: string
   url: string
@@ -15,12 +14,12 @@ export interface ManagedImage {
   tags: string[]
   usageCount: number
   usedIn: Array<{
-    pageId: string
-    pageName: string
-    componentId: string
-    componentName: string
-    location: string
-  }>
+  pageId: string
+  pageName: string
+  componentId: string
+  componentName: string
+  location: string
+}>
   originalName: string
   mimeType: string
   exists: boolean // Track if file actually exists
