@@ -158,7 +158,7 @@ export default function EnhancedImageUpload({
   const [tags, setTags] = useState("")
 
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { addImage, categories } = useImageManagementStore()
+  const { addImageFromUrl, categories } = useImageManagementStore()
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return
@@ -194,37 +194,46 @@ export default function EnhancedImageUpload({
 
       for (const file of selectedFiles) {
         try {
-          const imageId = await addImage(
-            {
-              url: "", // Will be set by the server
-              alt: file.name.replace(/\.[^/.]+$/, ""),
-              title: file.name,
-              category,
-              size: `${Math.round(file.size / 1024)}KB`,
-              tags: tagArray,
-              originalName: file.name,
-              mimeType: file.type,
-            },
-            file,
-          ) // Pass the actual file
+          // Create blob URL for immediate preview
+          const blobUrl = URL.createObjectURL(file)
+
+          const imageId = await addImageFromUrl(blobUrl, {
+            alt: file.name.replace(/\.[^/.]+$/, ""),
+            title: file.name,
+            category,
+            size: `${Math.round(file.size / 1024)}KB`,
+            tags: tagArray,
+            originalName: file.name,
+            mimeType: file.type,
+          })
+
+          // Create download link for manual saving
+          const link = document.createElement("a")
+          link.href = blobUrl
+          link.download = file.name
+          link.style.display = "none"
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
 
           if (onImageUploaded) {
             onImageUploaded(imageId)
           }
-        } catch (error) {
-          console.error(`Failed to upload ${file.name}:`, error)
+
+          // Show instructions
           toast({
-            title: "Upload Failed",
-            description: `Failed to upload ${file.name}. Please try again.`,
+            title: "Image Ready",
+            description: `${file.name} is ready. Save it to your desired location manually.`,
+          })
+        } catch (error) {
+          console.error(`Failed to process ${file.name}:`, error)
+          toast({
+            title: "Processing Failed",
+            description: `Failed to process ${file.name}. Please try again.`,
             variant: "destructive",
           })
         }
       }
-
-      toast({
-        title: "Images Uploaded",
-        description: `${selectedFiles.length} image(s) uploaded successfully.`,
-      })
 
       // Reset form
       setSelectedFiles([])
@@ -233,7 +242,7 @@ export default function EnhancedImageUpload({
     } catch (error) {
       toast({
         title: "Upload Failed",
-        description: "Failed to upload images. Please try again.",
+        description: "Failed to process images. Please try again.",
         variant: "destructive",
       })
     } finally {

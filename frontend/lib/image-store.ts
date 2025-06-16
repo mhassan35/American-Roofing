@@ -19,10 +19,11 @@ export interface ManagedImage {
     pageName: string
     componentId: string
     componentName: string
-    location: string // e.g., "hero-background", "gallery-item-1"
+    location: string
   }>
   originalName: string
   mimeType: string
+  exists: boolean // Track if file actually exists
 }
 
 export interface ImageCategory {
@@ -50,14 +51,13 @@ interface ImageManagementState {
     storageUsed: string
   }
 
-  // Actions
-  addImage: (
-    imageData: Omit<ManagedImage, "id" | "uploadDate" | "usageCount" | "usedIn">,
-    file?: File,
-  ) => Promise<string>
+  // Frontend-only actions (replace the old ones)
+  addImageFromUrl: (imageUrl: string, metadata?: Partial<ManagedImage>) => Promise<string>
   updateImage: (imageId: string, updates: Partial<ManagedImage>) => void
   deleteImage: (imageId: string) => Promise<void>
-  replaceImage: (imageId: string, newFile: File) => Promise<void>
+  replaceImageAtUrl: (imageId: string, newFile: File) => Promise<void>
+  scanForImages: () => Promise<void>
+  checkImageExists: (url: string) => Promise<boolean>
 
   // Usage tracking
   registerImageUsage: (imageId: string, usage: ManagedImage["usedIn"][0]) => void
@@ -74,7 +74,7 @@ interface ImageManagementState {
   selectImage: (imageId: string | null) => void
 
   // Bulk operations
-  bulkDelete: (imageIds: string[]) => void
+  bulkDelete: (imageIds: string[]) => Promise<void>
   bulkUpdateCategory: (imageIds: string[], category: string) => void
 
   // Statistics
@@ -85,10 +85,7 @@ interface ImageManagementState {
   updateCategory: (categoryId: string, updates: Partial<ImageCategory>) => void
   deleteCategory: (categoryId: string) => void
 
-  // Add this to the interface
   notifyImageChange?: (imageId: string, action: "replace" | "delete", oldUrl: string, newUrl: string) => void
-
-  loadImagesFromServer: () => Promise<void>
 }
 
 const defaultCategories: ImageCategory[] = [
@@ -101,6 +98,12 @@ const defaultCategories: ImageCategory[] = [
   { id: "hero-images", name: "Hero Images", icon: "image", count: 0 },
   { id: "gallery", name: "Gallery", icon: "grid", count: 0 },
 ]
+
+// Common image paths to scan
+const commonImagePaths = ["/images/", "/assets/", "/uploads/", "/media/", "/public/images/", "/static/images/"]
+
+// Common image extensions
+const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp"]
 
 export const useImageManagementStore = create<ImageManagementState>()(
   persist(
@@ -117,37 +120,45 @@ export const useImageManagementStore = create<ImageManagementState>()(
         storageUsed: "0 MB",
       },
 
-      addImage: async (imageData: Omit<ManagedImage, "id" | "uploadDate" | "usageCount" | "usedIn">, file?: File) => {
+      addImageFromUrl: async (imageUrl: string, metadata: Partial<ManagedImage> = {}) => {
         try {
-          let imageUrl = imageData.url
+          const exists = await get().checkImageExists(imageUrl)
 
-          // If a file is provided, upload it to the server
-          if (file) {
-            const formData = new FormData()
-            formData.append("image", file)
-            formData.append("category", imageData.category)
-            formData.append("alt", imageData.alt)
+          // Extract filename and extension
+          const urlParts = imageUrl.split("/")
+          const filename = urlParts[urlParts.length - 1]
+          const extension = filename.split(".").pop()?.toLowerCase() || "jpg"
 
-            const response = await fetch("/api/images/upload", {
-              method: "POST",
-              body: formData,
-            })
-
-            if (!response.ok) {
-              throw new Error("Failed to upload image")
+          // Try to get image size
+          let size = "Unknown"
+          if (exists) {
+            try {
+              const response = await fetch(imageUrl, { method: "HEAD" })
+              const contentLength = response.headers.get("content-length")
+              if (contentLength) {
+                const sizeInKB = Math.round(Number.parseInt(contentLength) / 1024)
+                size = `${sizeInKB}KB`
+              }
+            } catch (error) {
+              console.warn("Could not get image size:", error)
             }
-
-            const result = await response.json()
-            imageUrl = result.url // Use the server-returned URL
           }
 
           const newImage: ManagedImage = {
-            ...imageData,
-            url: imageUrl,
             id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            url: imageUrl,
+            alt: metadata.alt || filename.replace(/\.[^/.]+$/, ""),
+            title: metadata.title || filename,
+            category: metadata.category || "general",
+            size,
             uploadDate: new Date().toISOString(),
+            tags: metadata.tags || [],
             usageCount: 0,
             usedIn: [],
+            originalName: filename,
+            mimeType: `image/${extension}`,
+            exists,
+            ...metadata,
           }
 
           set((state) => ({
@@ -176,22 +187,8 @@ export const useImageManagementStore = create<ImageManagementState>()(
         if (!image) return
 
         try {
-          // Delete from server/filesystem
-          const response = await fetch("/api/images/delete", {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              imageId: imageId,
-              url: image.url,
-            }),
-          })
-
-          if (!response.ok) {
-            throw new Error("Failed to delete image from server")
-          }
-
+          // For frontend-only deletion, we just remove from our store
+          // The actual file deletion would need to be handled manually or through file system access
           const wasInUse = image.usedIn.length > 0
 
           set((state) => ({
@@ -205,44 +202,36 @@ export const useImageManagementStore = create<ImageManagementState>()(
           if (wasInUse) {
             get().notifyImageChange?.(imageId, "delete", image.url, "/placeholder.svg?height=400&width=600")
           }
+
+          // Show instructions for manual file deletion
+          console.log(`To complete deletion, manually remove file: ${image.url}`)
         } catch (error) {
           console.error("Failed to delete image:", error)
           throw error
         }
       },
 
-      replaceImage: async (imageId: string, newFile: File) => {
+      replaceImageAtUrl: async (imageId: string, newFile: File) => {
         const oldImage = get().images.find((img) => img.id === imageId)
         if (!oldImage) return
 
         try {
-          const formData = new FormData()
-          formData.append("image", newFile)
-          formData.append("oldImageId", imageId)
-          formData.append("oldImageUrl", oldImage.url)
-
-          const response = await fetch("/api/images/replace", {
-            method: "POST",
-            body: formData,
-          })
-
-          if (!response.ok) {
-            throw new Error("Failed to replace image")
-          }
-
-          const result = await response.json()
+          // Create a new blob URL for preview
+          const newUrl = URL.createObjectURL(newFile)
           const sizeInKB = Math.round(newFile.size / 1024)
 
+          // Update the image in our store
           set((state) => ({
             images: state.images.map((img) =>
               img.id === imageId
                 ? {
                     ...img,
-                    url: result.url,
+                    url: newUrl, // Use blob URL temporarily
                     originalName: newFile.name,
                     size: `${sizeInKB}KB`,
                     mimeType: newFile.type,
                     uploadDate: new Date().toISOString(),
+                    exists: true,
                   }
                 : img,
             ),
@@ -251,18 +240,86 @@ export const useImageManagementStore = create<ImageManagementState>()(
           get().updateStats()
 
           // Notify subscribers of the change for real-time sync
-          get().notifyImageChange?.(imageId, "replace", oldImage.url, result.url)
+          get().notifyImageChange?.(imageId, "replace", oldImage.url, newUrl)
+
+          // Show instructions for manual file replacement
+          console.log(`To complete replacement, save the new file to: ${oldImage.url}`)
+
+          // Create download link for the user
+          const link = document.createElement("a")
+          link.href = newUrl
+          link.download = oldImage.originalName
+          link.style.display = "none"
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
         } catch (error) {
           console.error("Failed to replace image:", error)
           throw error
         }
       },
 
+      checkImageExists: async (url: string): Promise<boolean> => {
+        try {
+          const response = await fetch(url, { method: "HEAD" })
+          return response.ok
+        } catch (error) {
+          return false
+        }
+      },
+
+      scanForImages: async () => {
+        const foundImages: string[] = []
+
+        // Scan common image paths
+        for (const basePath of commonImagePaths) {
+          for (const ext of imageExtensions) {
+            // Try common naming patterns
+            const commonNames = [
+              "hero",
+              "banner",
+              "logo",
+              "about",
+              "contact",
+              "team",
+              "service1",
+              "service2",
+              "service3",
+              "gallery1",
+              "gallery2",
+              "before1",
+              "after1",
+              "roof1",
+              "roof2",
+              "storm1",
+              "repair1",
+            ]
+
+            for (const name of commonNames) {
+              const url = `${basePath}${name}.${ext}`
+              const exists = await get().checkImageExists(url)
+              if (exists && !foundImages.includes(url)) {
+                foundImages.push(url)
+              }
+            }
+          }
+        }
+
+        // Add found images to store
+        for (const url of foundImages) {
+          const existingImage = get().images.find((img) => img.url === url)
+          if (!existingImage) {
+            await get().addImageFromUrl(url)
+          }
+        }
+
+        console.log(`Found ${foundImages.length} images during scan`)
+      },
+
       registerImageUsage: (imageId, usage) => {
         set((state) => ({
           images: state.images.map((img) => {
             if (img.id === imageId) {
-              // Check if this usage already exists
               const existingUsage = img.usedIn.find(
                 (u) =>
                   u.pageId === usage.pageId && u.componentId === usage.componentId && u.location === usage.location,
@@ -322,7 +379,10 @@ export const useImageManagementStore = create<ImageManagementState>()(
         const { images, searchTerm, selectedCategory } = get()
 
         return images.filter((image) => {
-          const matchesCategory = selectedCategory === "all" || image.category === selectedCategory
+          const matchesCategory =
+            selectedCategory === "all" ||
+            (selectedCategory === "unused" && image.usedIn.length === 0) ||
+            image.category === selectedCategory
           const matchesSearch =
             image.alt.toLowerCase().includes(searchTerm.toLowerCase()) ||
             image.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -338,16 +398,20 @@ export const useImageManagementStore = create<ImageManagementState>()(
         set({ selectedImage: image || null })
       },
 
-      bulkDelete: (imageIds) => {
-        const imagesInUse = imageIds.filter((id) => {
-          const image = get().images.find((img) => img.id === id)
-          return image && image.usedIn.length > 0
-        })
+      bulkDelete: async (imageIds) => {
+        const imagesToDelete = imageIds.map((id) => get().images.find((img) => img.id === id)).filter(Boolean)
+        const imagesInUse = imagesToDelete.filter((img) => img && img.usedIn.length > 0)
 
         if (imagesInUse.length > 0) {
-          console.warn(`Cannot delete ${imagesInUse.length} images: still in use`)
-          return
+          console.warn(`Deleting ${imagesInUse.length} images that are still in use`)
         }
+
+        // Show instructions for manual deletion
+        imagesToDelete.forEach((img) => {
+          if (img) {
+            console.log(`To complete deletion, manually remove file: ${img.url}`)
+          }
+        })
 
         set((state) => ({
           images: state.images.filter((img) => !imageIds.includes(img.id)),
@@ -407,49 +471,15 @@ export const useImageManagementStore = create<ImageManagementState>()(
       },
 
       deleteCategory: (categoryId) => {
-        // Move images from deleted category to "general"
         set((state) => ({
           categories: state.categories.filter((cat) => cat.id !== categoryId),
           images: state.images.map((img) => (img.category === categoryId ? { ...img, category: "general" } : img)),
         }))
         get().updateStats()
       },
-      // Add this to the store implementation
+
       notifyImageChange: (imageId, action, oldUrl, newUrl) => {
-        // This will be used by the sync hook to trigger immediate updates
         console.log(`Image ${action}: ${imageId}, ${oldUrl} -> ${newUrl}`)
-      },
-
-      loadImagesFromServer: async () => {
-        try {
-          const response = await fetch("/api/images/list")
-          if (!response.ok) {
-            throw new Error("Failed to load images")
-          }
-
-          const serverImages = await response.json()
-
-          // Convert server images to ManagedImage format
-          const managedImages: ManagedImage[] = serverImages.map((img: any) => ({
-            id: img.id || `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            url: img.url,
-            alt: img.alt || img.name || "Image",
-            title: img.title || img.name,
-            category: img.category || "general",
-            size: img.size || "0KB",
-            uploadDate: img.uploadDate || new Date().toISOString(),
-            tags: img.tags || [],
-            usageCount: 0,
-            usedIn: [],
-            originalName: img.originalName || img.name || "image",
-            mimeType: img.mimeType || "image/jpeg",
-          }))
-
-          set({ images: managedImages })
-          get().updateStats()
-        } catch (error) {
-          console.error("Failed to load images from server:", error)
-        }
       },
     }),
     {

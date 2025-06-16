@@ -387,12 +387,13 @@ export default function EnhancedImageManagement() {
     selectImage,
     updateImage,
     deleteImage,
-    replaceImage,
     bulkDelete,
     bulkUpdateCategory,
     findUnusedImages,
-    addImage,
     updateStats,
+    addImageFromUrl,
+    scanForImages,
+    replaceImageAtUrl,
   } = useImageManagementStore()
 
   const { updateImageReferences, forceComponentUpdate } = useImageSync()
@@ -400,11 +401,12 @@ export default function EnhancedImageManagement() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showReplaceDialog, setShowReplaceDialog] = useState(false)
   const [showImageDetails, setShowImageDetails] = useState(false)
   const [editingAlt, setEditingAlt] = useState("")
   const [editingTags, setEditingTags] = useState("")
   const [uploading, setUploading] = useState(false)
+  const [manualUrl, setManualUrl] = useState("")
+  const [scanning, setScanning] = useState(false)
 
   const filteredImages = getFilteredImages()
   const unusedImages = findUnusedImages()
@@ -414,16 +416,22 @@ export default function EnhancedImageManagement() {
   }, [images, updateStats])
 
   useEffect(() => {
-    // Load existing images from server when component mounts
-    const loadImages = async () => {
+    // Frontend-only initialization - scan for images on component mount
+    const initializeImages = async () => {
       try {
-        await useImageManagementStore.getState().loadImagesFromServer?.()
+        // First, try to scan for existing images automatically
+        if (images.length === 0) {
+          await scanForImages()
+        }
+
+        // Update stats after any initialization
+        updateStats()
       } catch (error) {
-        console.error("Failed to load images:", error)
+        console.error("Failed to initialize images:", error)
       }
     }
 
-    loadImages()
+    initializeImages()
   }, [])
 
   const handleImageSelect = (imageId: string) => {
@@ -503,32 +511,40 @@ export default function EnhancedImageManagement() {
         if (!file.type.startsWith("image/")) continue
 
         try {
-          await addImage(
-            {
-              url: "", // Will be set by server
-              alt: file.name.replace(/\.[^/.]+$/, ""),
-              title: file.name,
-              category: "general",
-              size: `${Math.round(file.size / 1024)}KB`,
-              tags: [],
-              originalName: file.name,
-              mimeType: file.type,
-            },
-            file,
-          )
+          // Create blob URL for immediate preview
+          const blobUrl = URL.createObjectURL(file)
+
+          await addImageFromUrl(blobUrl, {
+            alt: file.name.replace(/\.[^/.]+$/, ""),
+            title: file.name,
+            category: "general",
+            size: `${Math.round(file.size / 1024)}KB`,
+            tags: [],
+            originalName: file.name,
+            mimeType: file.type,
+          })
+
+          // Create download link for manual saving
+          const link = document.createElement("a")
+          link.href = blobUrl
+          link.download = file.name
+          link.style.display = "none"
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
         } catch (error) {
-          console.error(`Failed to upload ${file.name}:`, error)
+          console.error(`Failed to process ${file.name}:`, error)
         }
       }
 
       toast({
-        title: "Images Uploaded",
-        description: `${files.length} images have been uploaded successfully.`,
+        title: "Images Processed",
+        description: `${files.length} images have been processed. Save them manually to your desired locations.`,
       })
     } catch (error) {
       toast({
-        title: "Upload Failed",
-        description: "Failed to upload some images. Please try again.",
+        title: "Processing Failed",
+        description: "Failed to process some images. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -557,15 +573,57 @@ export default function EnhancedImageManagement() {
     })
   }
 
+  const handleAddManualUrl = async () => {
+    if (!manualUrl.trim()) return
+
+    try {
+      await addImageFromUrl(manualUrl.trim())
+      setManualUrl("")
+      toast({
+        title: "Image Added",
+        description: "Image has been added to the management system.",
+      })
+    } catch (error) {
+      toast({
+        title: "Failed to Add Image",
+        description: "Could not add the image. Please check the URL.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleScanForImages = async () => {
+    setScanning(true)
+    try {
+      await scanForImages()
+      toast({
+        title: "Scan Complete",
+        description: "Finished scanning for existing images.",
+      })
+    } catch (error) {
+      toast({
+        title: "Scan Failed",
+        description: "Failed to scan for images.",
+        variant: "destructive",
+      })
+    } finally {
+      setScanning(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Enhanced Image Management</h1>
-          <p className="text-gray-600">Centralized management for all website images</p>
+          <p className="text-gray-600">Frontend-only management for existing website images</p>
         </div>
-        <div className="flex gap-2 mt-4 sm:mt-0">
+        <div className="flex gap-2 mt-4 sm:mt-0 flex-wrap">
+          <Button variant="outline" onClick={handleScanForImages} disabled={scanning}>
+            <Search className="h-4 w-4 mr-2" />
+            {scanning ? "Scanning..." : "Scan for Images"}
+          </Button>
           <Button
             variant="outline"
             onClick={() => {
@@ -582,7 +640,7 @@ export default function EnhancedImageManagement() {
             disabled={uploading}
           >
             <Upload className="h-4 w-4 mr-2" />
-            {uploading ? "Uploading..." : "Upload Images"}
+            {uploading ? "Processing..." : "Add Images"}
           </Button>
           <Button onClick={updateStats}>
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -590,6 +648,24 @@ export default function EnhancedImageManagement() {
           </Button>
         </div>
       </div>
+
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Enter image URL to add to management..."
+              value={manualUrl}
+              onChange={(e) => setManualUrl(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleAddManualUrl()}
+              className="flex-1"
+            />
+            <Button onClick={handleAddManualUrl} disabled={!manualUrl.trim()}>
+              Add URL
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">Add existing images by URL or scan common paths automatically</p>
+        </CardContent>
+      </Card>
 
       {/* Statistics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -744,10 +820,25 @@ export default function EnhancedImageManagement() {
                   </div>
 
                   <div
-                    className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center"
+                    className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center relative overflow-hidden"
                     onClick={() => handleImageClick(image)}
                   >
-                    <ImageIcon className="h-8 w-8 text-gray-400" />
+                    {image.exists ? (
+                      <img
+                        src={image.url || "/placeholder.svg"}
+                        alt={image.alt}
+                        className="w-full h-full object-cover"
+                        onError={() => {
+                          // Mark as non-existent if image fails to load
+                          updateImage(image.id, { exists: false })
+                        }}
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                        <span className="text-xs text-gray-500 mt-1">Not Found</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="absolute top-2 right-2">
@@ -959,8 +1050,15 @@ export default function EnhancedImageManagement() {
               <TabsContent value="replace" className="space-y-4">
                 <div className="text-center py-8">
                   <p className="text-gray-600 mb-4">
-                    Replace this image with a new one. All usages will be automatically updated.
+                    Select a new image file. The system will show you a preview and provide download instructions.
                   </p>
+                  <Alert className="mb-4">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      After selecting a file, you'll need to manually save it to replace the original file at:
+                      <code className="block mt-1 p-1 bg-gray-100 rounded text-sm">{selectedImage?.url}</code>
+                    </AlertDescription>
+                  </Alert>
                   <Button
                     onClick={() => {
                       const input = document.createElement("input")
@@ -970,26 +1068,18 @@ export default function EnhancedImageManagement() {
                         const file = (e.target as HTMLInputElement).files?.[0]
                         if (file && selectedImage) {
                           try {
-                            const oldUrl = selectedImage.url
-
-                            await replaceImage(selectedImage.id, file)
-
-                            // Update all references immediately
-                            updateImageReferences(oldUrl, selectedImage.url)
-
-                            // Force immediate update
-                            forceComponentUpdate()
+                            await replaceImageAtUrl(selectedImage.id, file)
 
                             toast({
-                              title: "Image Replaced",
-                              description: "The image has been replaced and all references updated immediately.",
+                              title: "Image Prepared for Replacement",
+                              description: "Download started. Save the file to replace the original image.",
                             })
 
                             setShowImageDetails(false)
                           } catch (error) {
                             toast({
                               title: "Replace Failed",
-                              description: "Failed to replace image. Please try again.",
+                              description: "Failed to prepare replacement. Please try again.",
                               variant: "destructive",
                             })
                           }
@@ -999,7 +1089,7 @@ export default function EnhancedImageManagement() {
                     }}
                   >
                     <Upload className="h-4 w-4 mr-2" />
-                    Choose New Image
+                    Choose Replacement Image
                   </Button>
                 </div>
               </TabsContent>
@@ -1021,13 +1111,23 @@ export default function EnhancedImageManagement() {
           <DialogHeader>
             <DialogTitle>Delete Images</DialogTitle>
           </DialogHeader>
-          <p>Are you sure you want to delete {selectedImages.length} selected images? This action cannot be undone.</p>
+          <div className="space-y-4">
+            <p>Are you sure you want to remove {selectedImages.length} selected images from management?</p>
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Note:</strong> This will only remove images from the management system. To delete the actual
+                files, you'll need to manually remove them from your file system. Check the console for file paths after
+                deletion.
+              </AlertDescription>
+            </Alert>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDeleteSelected}>
-              Delete Images
+              Remove from Management
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -7,7 +7,7 @@ import Sidebar from "./Sidebar"
 import DashboardOverview from "./DashboardOverview"
 import LeadsManagement from "./LeadsManagement"
 import ContentManagement from "./ContentManagement"
-import ImageManagement from "./ImageManagement"
+import ImageManagement from "./real-time-image-dashboard"
 // import SettingsPanel from "./SettingsPanel"
 // import ServicesManagement from "./ServicesManagement"
 
