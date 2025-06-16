@@ -189,7 +189,7 @@ export default function Gallery({ content }: GalleryProps) {
             <div className="text-5xl sm:text-6xl text-brand-orange font-serif mr-4 sm:mr-6">"</div>
             <div>
               <p className="text-base sm:text-lg md:text-xl text-gray-600 italic mb-4">{currentProject.testimonial}</p>
-              <p className="text-base sm:text-lg font-medium text-gray-800">— {currentProject.customerName}</p>
+              <p className="text-base sm:text-lg font-medium text-gray-800">— Get a detailed quote with no pressure or commitment required. {currentProject.customerName}</p>
             </div>
           </div>
         </div>

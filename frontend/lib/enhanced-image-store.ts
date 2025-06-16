@@ -510,24 +510,16 @@ export const useEnhancedImageStore = create<ImageManagementState>()(
           const fileName = `${Date.now()}-${file.name}`
           const storagePath = `/storage/${categoryId}/${fileName}`
 
-          console.log(`Save file to: ${storagePath}`)
-          console.log("File object:", file)
+          console.log(`Image processed for category: ${categoryId}`)
+          console.log(`Storage path would be: ${storagePath}`)
 
-          // Create download link for manual saving
-          const link = document.createElement("a")
-          link.href = blobUrl
-          link.download = fileName
-          link.style.display = "none"
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-
-          return storagePath
+          // Return the blob URL for immediate use
+          return blobUrl
         },
 
         deleteImageFromStorage: async (imageUrl: string): Promise<void> => {
           // In a real implementation, this would delete the file from storage
-          console.log(`Delete file: ${imageUrl}`)
+          console.log(`Image marked for deletion: ${imageUrl}`)
 
           // Clean up blob URLs
           if (imageUrl.startsWith("blob:")) {

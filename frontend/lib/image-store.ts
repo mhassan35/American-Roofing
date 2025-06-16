@@ -3,6 +3,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
+// Enhanced image interface with usage tracking
 export interface ManagedImage {
   id: string
   url: string
@@ -14,12 +15,12 @@ export interface ManagedImage {
   tags: string[]
   usageCount: number
   usedIn: Array<{
-  pageId: string
-  pageName: string
-  componentId: string
-  componentName: string
-  location: string
-}>
+    pageId: string
+    pageName: string
+    componentId: string
+    componentName: string
+    location: string
+  }>
   originalName: string
   mimeType: string
   exists: boolean // Track if file actually exists
@@ -186,8 +187,6 @@ export const useImageManagementStore = create<ImageManagementState>()(
         if (!image) return
 
         try {
-          // For frontend-only deletion, we just remove from our store
-          // The actual file deletion would need to be handled manually or through file system access
           const wasInUse = image.usedIn.length > 0
 
           set((state) => ({
@@ -202,8 +201,7 @@ export const useImageManagementStore = create<ImageManagementState>()(
             get().notifyImageChange?.(imageId, "delete", image.url, "/placeholder.svg?height=400&width=600")
           }
 
-          // Show instructions for manual file deletion
-          console.log(`To complete deletion, manually remove file: ${image.url}`)
+          console.log(`Image deleted from store: ${image.url}`)
         } catch (error) {
           console.error("Failed to delete image:", error)
           throw error
@@ -225,7 +223,7 @@ export const useImageManagementStore = create<ImageManagementState>()(
               img.id === imageId
                 ? {
                     ...img,
-                    url: newUrl, // Use blob URL temporarily
+                    url: newUrl,
                     originalName: newFile.name,
                     size: `${sizeInKB}KB`,
                     mimeType: newFile.type,
@@ -241,17 +239,7 @@ export const useImageManagementStore = create<ImageManagementState>()(
           // Notify subscribers of the change for real-time sync
           get().notifyImageChange?.(imageId, "replace", oldImage.url, newUrl)
 
-          // Show instructions for manual file replacement
-          console.log(`To complete replacement, save the new file to: ${oldImage.url}`)
-
-          // Create download link for the user
-          const link = document.createElement("a")
-          link.href = newUrl
-          link.download = oldImage.originalName
-          link.style.display = "none"
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
+          console.log(`Image replaced in store. Old: ${oldImage.url}, New: ${newUrl}`)
         } catch (error) {
           console.error("Failed to replace image:", error)
           throw error
@@ -404,13 +392,6 @@ export const useImageManagementStore = create<ImageManagementState>()(
         if (imagesInUse.length > 0) {
           console.warn(`Deleting ${imagesInUse.length} images that are still in use`)
         }
-
-        // Show instructions for manual deletion
-        imagesToDelete.forEach((img) => {
-          if (img) {
-            console.log(`To complete deletion, manually remove file: ${img.url}`)
-          }
-        })
 
         set((state) => ({
           images: state.images.filter((img) => !imageIds.includes(img.id)),
