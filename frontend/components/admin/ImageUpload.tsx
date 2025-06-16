@@ -1,3 +1,131 @@
+// "use client"
+
+// import type React from "react"
+
+// import { useState, useRef } from "react"
+// import { Button } from "@/components/ui/button"
+// import { Card, CardContent } from "@/components/ui/card"
+// import { Label } from "@/components/ui/label"
+// import { Upload, ImageIcon } from "lucide-react"
+// import { useContentStore } from "@/lib/store"
+// import { toast } from "@/hooks/use-toast"
+
+// interface ImageUploadProps {
+//   pageId: string
+//   onImageUploaded?: (imageId: string) => void
+// }
+
+// export default function ImageUpload({ pageId, onImageUploaded }: ImageUploadProps) {
+//   const [uploading, setUploading] = useState(false)
+//   const [dragOver, setDragOver] = useState(false)
+//   const fileInputRef = useRef<HTMLInputElement>(null)
+//   const { addImage } = useContentStore()
+
+//   const handleFileSelect = (files: FileList | null) => {
+//     if (!files || files.length === 0) return
+
+//     const file = files[0]
+//     if (!file.type.startsWith("image/")) {
+//       toast({
+//         title: "Invalid File",
+//         description: "Please select an image file.",
+//         variant: "destructive",
+//       })
+//       return
+//     }
+
+//     uploadImage(file)
+//   }
+
+//   const uploadImage = async (file: File) => {
+//     setUploading(true)
+
+//     try {
+//       // Create a blob URL for the image (in a real app, you'd upload to a server)
+//       const imageUrl = URL.createObjectURL(file)
+
+//       const newImage = {
+//         id: `img-${Date.now()}`,
+//         url: imageUrl,
+//         alt: file.name.replace(/\.[^/.]+$/, ""),
+//         title: file.name,
+//       }
+
+//       addImage({ pageId, image: newImage })
+
+//       toast({
+//         title: "Image Uploaded",
+//         description: "Image has been successfully uploaded.",
+//       })
+
+//       if (onImageUploaded) {
+//         onImageUploaded(newImage.id)
+//       }
+//     } catch (error) {
+//       toast({
+//         title: "Upload Failed",
+//         description: "Failed to upload image. Please try again.",
+//         variant: "destructive",
+//       })
+//     } finally {
+//       setUploading(false)
+//     }
+//   }
+
+//   const handleDrop = (e: React.DragEvent) => {
+//     e.preventDefault()
+//     setDragOver(false)
+//     handleFileSelect(e.dataTransfer.files)
+//   }
+
+//   const handleDragOver = (e: React.DragEvent) => {
+//     e.preventDefault()
+//     setDragOver(true)
+//   }
+
+//   const handleDragLeave = (e: React.DragEvent) => {
+//     e.preventDefault()
+//     setDragOver(false)
+//   }
+
+//   return (
+//     <Card className="w-full">
+//       <CardContent className="p-6">
+//         <div className="space-y-4">
+//           <Label className="text-sm font-medium">Upload Image</Label>
+
+//           <div
+//             className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+//               dragOver ? "border-orange-500 bg-orange-50" : "border-gray-300 hover:border-gray-400"
+//             }`}
+//             onDrop={handleDrop}
+//             onDragOver={handleDragOver}
+//             onDragLeave={handleDragLeave}
+//           >
+//             <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+//             <p className="text-gray-600 mb-4">Drag and drop an image here, or click to select</p>
+//             <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+//               <Upload className="h-4 w-4 mr-2" />
+//               {uploading ? "Uploading..." : "Select Image"}
+//             </Button>
+//           </div>
+
+//           <input
+//             ref={fileInputRef}
+//             type="file"
+//             accept="image/*"
+//             className="hidden"
+//             onChange={(e) => handleFileSelect(e.target.files)}
+//           />
+//         </div>
+//       </CardContent>
+//     </Card>
+//   )
+// }
+
+
+
+
 "use client"
 
 import type React from "react"
@@ -6,70 +134,115 @@ import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Upload, ImageIcon } from "lucide-react"
-import { useContentStore } from "@/lib/store"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Upload, ImageIcon, X } from "lucide-react"
+import { useImageManagementStore } from "@/lib/image-store"
 import { toast } from "@/hooks/use-toast"
 
-interface ImageUploadProps {
-  pageId: string
+interface EnhancedImageUploadProps {
   onImageUploaded?: (imageId: string) => void
+  defaultCategory?: string
+  multiple?: boolean
 }
 
-export default function ImageUpload({ pageId, onImageUploaded }: ImageUploadProps) {
+export default function EnhancedImageUpload({
+  onImageUploaded,
+  defaultCategory = "general",
+  multiple = true,
+}: EnhancedImageUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [category, setCategory] = useState(defaultCategory)
+  const [tags, setTags] = useState("")
+
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { addImage } = useContentStore()
+  const { addImage, categories } = useImageManagementStore()
 
   const handleFileSelect = (files: FileList | null) => {
-    if (!files || files.length === 0) return
+    if (!files) return
 
-    const file = files[0]
-    if (!file.type.startsWith("image/")) {
+    const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image/"))
+
+    if (imageFiles.length === 0) {
       toast({
-        title: "Invalid File",
-        description: "Please select an image file.",
+        title: "Invalid Files",
+        description: "Please select image files only.",
         variant: "destructive",
       })
       return
     }
 
-    uploadImage(file)
+    if (!multiple && imageFiles.length > 1) {
+      setSelectedFiles([imageFiles[0]])
+    } else {
+      setSelectedFiles(imageFiles)
+    }
   }
 
-  const uploadImage = async (file: File) => {
+  const uploadImages = async () => {
+    if (selectedFiles.length === 0) return
+
     setUploading(true)
 
     try {
-      // Create a blob URL for the image (in a real app, you'd upload to a server)
-      const imageUrl = URL.createObjectURL(file)
+      const tagArray = tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean)
 
-      const newImage = {
-        id: `img-${Date.now()}`,
-        url: imageUrl,
-        alt: file.name.replace(/\.[^/.]+$/, ""),
-        title: file.name,
+      for (const file of selectedFiles) {
+        try {
+          const imageId = await addImage(
+            {
+              url: "", // Will be set by the server
+              alt: file.name.replace(/\.[^/.]+$/, ""),
+              title: file.name,
+              category,
+              size: `${Math.round(file.size / 1024)}KB`,
+              tags: tagArray,
+              originalName: file.name,
+              mimeType: file.type,
+            },
+            file,
+          ) // Pass the actual file
+
+          if (onImageUploaded) {
+            onImageUploaded(imageId)
+          }
+        } catch (error) {
+          console.error(`Failed to upload ${file.name}:`, error)
+          toast({
+            title: "Upload Failed",
+            description: `Failed to upload ${file.name}. Please try again.`,
+            variant: "destructive",
+          })
+        }
       }
-
-      addImage({ pageId, image: newImage })
 
       toast({
-        title: "Image Uploaded",
-        description: "Image has been successfully uploaded.",
+        title: "Images Uploaded",
+        description: `${selectedFiles.length} image(s) uploaded successfully.`,
       })
 
-      if (onImageUploaded) {
-        onImageUploaded(newImage.id)
-      }
+      // Reset form
+      setSelectedFiles([])
+      setTags("")
+      setCategory(defaultCategory)
     } catch (error) {
       toast({
         title: "Upload Failed",
-        description: "Failed to upload image. Please try again.",
+        description: "Failed to upload images. Please try again.",
         variant: "destructive",
       })
     } finally {
       setUploading(false)
     }
+  }
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
   const handleDrop = (e: React.DragEvent) => {
@@ -92,8 +265,9 @@ export default function ImageUpload({ pageId, onImageUploaded }: ImageUploadProp
     <Card className="w-full">
       <CardContent className="p-6">
         <div className="space-y-4">
-          <Label className="text-sm font-medium">Upload Image</Label>
+          <Label className="text-sm font-medium">Upload Images</Label>
 
+          {/* Drop Zone */}
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
               dragOver ? "border-orange-500 bg-orange-50" : "border-gray-300 hover:border-gray-400"
@@ -103,17 +277,73 @@ export default function ImageUpload({ pageId, onImageUploaded }: ImageUploadProp
             onDragLeave={handleDragLeave}
           >
             <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">Drag and drop an image here, or click to select</p>
+            <p className="text-gray-600 mb-4">Drag and drop images here, or click to select</p>
             <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
               <Upload className="h-4 w-4 mr-2" />
-              {uploading ? "Uploading..." : "Select Image"}
+              {uploading ? "Uploading..." : "Select Images"}
             </Button>
           </div>
+
+          {/* Selected Files */}
+          {selectedFiles.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Selected Files</Label>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {selectedFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div className="flex items-center gap-2">
+                      <ImageIcon className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm truncate">{file.name}</span>
+                      <span className="text-xs text-gray-500">({Math.round(file.size / 1024)}KB)</span>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => removeFile(index)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Upload Settings */}
+          {selectedFiles.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium mb-1">Category</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-1">Tags</Label>
+                <Input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="tag1, tag2, tag3..." />
+              </div>
+            </div>
+          )}
+
+          {/* Upload Button */}
+          {selectedFiles.length > 0 && (
+            <Button onClick={uploadImages} disabled={uploading} className="w-full">
+              <Upload className="h-4 w-4 mr-2" />
+              {uploading ? "Uploading..." : `Upload ${selectedFiles.length} Image(s)`}
+            </Button>
+          )}
 
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            multiple={multiple}
             className="hidden"
             onChange={(e) => handleFileSelect(e.target.files)}
           />

@@ -2944,6 +2944,7 @@ interface ContentState {
   categories: Record<CategoryType, string[]>
   isLoading?: boolean
   error?: string | null
+  lastUpdated: number
   initializeStore?: () => void
   selectPage: (pageId: string) => void
   selectComponent: (componentId: string) => void
@@ -2959,6 +2960,7 @@ interface ContentState {
   deleteComponent: (params: { pageId: string; componentId: string }) => void
   reorderComponents: (params: { pageId: string; componentIds: string[] }) => void
   duplicateComponent: (params: { pageId: string; componentId: string }) => void
+  updateStore: () => void
 }
 
 export const useContentStore = create<ContentState>()(
@@ -2970,6 +2972,7 @@ export const useContentStore = create<ContentState>()(
       categories: { main: [], service: [], utility: [] },
       isLoading: true,
       error: null,
+      lastUpdated: Date.now(),
 
       // Initialize with minimal data first
       initializeStore: () => {
@@ -2979,6 +2982,7 @@ export const useContentStore = create<ContentState>()(
             categories: createCategories(initialPages),
             isLoading: false,
             error: null,
+            lastUpdated: Date.now(),
           })
         } catch (error) {
           console.error("Failed to initialize store:", error)
@@ -3043,6 +3047,7 @@ export const useContentStore = create<ContentState>()(
             pages: updatedPages,
             selectedPage: updatedSelectedPage,
             selectedComponent: updatedSelectedComponent,
+            lastUpdated: Date.now(),
           })
         } catch (error) {
           console.error("Failed to update component settings:", error)
@@ -3078,6 +3083,7 @@ export const useContentStore = create<ContentState>()(
           set({
             pages: updatedPages,
             selectedPage: updatedSelectedPage,
+            lastUpdated: Date.now(),
           })
         } catch (error) {
           console.error("Failed to toggle component:", error)
@@ -3097,7 +3103,7 @@ export const useContentStore = create<ContentState>()(
             return page
           })
 
-          set({ pages: updatedPages })
+          set({ pages: updatedPages, lastUpdated: Date.now() })
         } catch (error) {
           console.error("Failed to update page SEO:", error)
         }
@@ -3116,7 +3122,7 @@ export const useContentStore = create<ContentState>()(
             return page
           })
 
-          set({ pages: updatedPages })
+          set({ pages: updatedPages, lastUpdated: Date.now() })
         } catch (error) {
           console.error("Failed to add image:", error)
         }
@@ -3139,7 +3145,7 @@ export const useContentStore = create<ContentState>()(
             return page
           })
 
-          set({ pages: updatedPages })
+          set({ pages: updatedPages, lastUpdated: Date.now() })
         } catch (error) {
           console.error("Failed to update image:", error)
         }
@@ -3158,7 +3164,7 @@ export const useContentStore = create<ContentState>()(
             return page
           })
 
-          set({ pages: updatedPages })
+          set({ pages: updatedPages, lastUpdated: Date.now() })
         } catch (error) {
           console.error("Failed to remove image:", error)
         }
@@ -3202,7 +3208,7 @@ export const useContentStore = create<ContentState>()(
             return page
           })
 
-          set({ pages: updatedPages })
+          set({ pages: updatedPages, lastUpdated: Date.now() })
         } catch (error) {
           console.error("Failed to add component:", error)
         }
@@ -3221,7 +3227,7 @@ export const useContentStore = create<ContentState>()(
             return page
           })
 
-          set({ pages: updatedPages })
+          set({ pages: updatedPages, lastUpdated: Date.now() })
         } catch (error) {
           console.error("Failed to delete component:", error)
         }
@@ -3244,7 +3250,7 @@ export const useContentStore = create<ContentState>()(
             return page
           })
 
-          set({ pages: updatedPages })
+          set({ pages: updatedPages, lastUpdated: Date.now() })
         } catch (error) {
           console.error("Failed to reorder components:", error)
         }
@@ -3279,10 +3285,14 @@ export const useContentStore = create<ContentState>()(
             return p
           })
 
-          set({ pages: updatedPages })
+          set({ pages: updatedPages, lastUpdated: Date.now() })
         } catch (error) {
           console.error("Failed to duplicate component:", error)
         }
+      },
+
+      updateStore: () => {
+        set({ lastUpdated: Date.now() })
       },
     }),
     {
