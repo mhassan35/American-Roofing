@@ -2,7 +2,7 @@
 
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-
+const backend_url = process.env.BACKEND_URL
 // Define types
 export type ComponentType =
   | "hero"
@@ -104,7 +104,7 @@ export const useLeadStore = create<LeadStore>()(
 
       deleteLead: async (_id) => {
         try {
-          await fetch("http://localhost:8080/api/deletecontact", {
+          await fetch("https://low-amusing-acapella.glitch.me/api/deletecontact", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

@@ -15,12 +15,13 @@ export default function LeadsManagement() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const backend_url = process.env.BACKEND_URL
 
   // Move fetchLeads function outside useEffect
   const fetchLeads = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch("http://localhost:8080/api/get-all-leads")
+      const response = await fetch("https://low-amusing-acapella.glitch.me/api/get-all-leads")
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`)
       }
